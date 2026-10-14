@@ -41,6 +41,7 @@ import { ExploreEmbeddableComponent } from './explore_embeddable_component';
 import { ExploreServices } from '../types';
 import { ExpressionRendererEvent, ExpressionRenderError } from '../../../expressions/public';
 import { AxisColumnMappings, VisColumn } from '../components/visualizations/types';
+import { DataLinkVariable } from '../components/visualizations/table/data_link_utils';
 import { DOC_HIDE_TIME_COLUMN_SETTING, SAMPLE_SIZE_SETTING } from '../../common';
 import * as columnActions from '../application/legacy/discover/application/utils/state_management/common';
 import { buildColumns } from '../application/legacy/discover/application/utils/columns';
@@ -84,6 +85,8 @@ export interface SearchProps {
   chartType?: ChartType;
   activeTab?: string;
   styleOptions?: StyleOptions;
+  /** Current dashboard variables, for $var / ${var} in table data links */
+  variables?: DataLinkVariable[];
   axisColumnMappings?: AxisColumnMappings;
   displayTimeColumn: boolean;
   title: string;
@@ -311,6 +314,7 @@ export class ExploreEmbeddable
             const hasLoading = variables.some((v) => 'loading' in v && v?.loading);
             if (hasLoading) return;
 
+            this.refreshLinkVariables();
             this.handleVariablesChange();
           });
       }
@@ -320,6 +324,21 @@ export class ExploreEmbeddable
   /**
    * Handle variable changes - interpolate query and refetch
    */
+  /**
+   * Table data links can use dashboard variables, so keep them current and
+   * re-render, also when the query itself does not use variables (then
+   * handleVariablesChange returns early and nothing else re-renders).
+   */
+  private refreshLinkVariables() {
+    if (!this.searchProps) {
+      return;
+    }
+    this.searchProps.variables = this.interpolationService.getVariables();
+    if (this.node) {
+      this.renderComponent(this.node, this.searchProps);
+    }
+  }
+
   private handleVariablesChange() {
     if (!this.originalQuery || !this.interpolationService.hasVariables(this.originalQuery)) {
       return;
@@ -361,6 +380,7 @@ export class ExploreEmbeddable
       isLoading: false,
       displayTimeColumn: this.services.uiSettings.get(DOC_HIDE_TIME_COLUMN_SETTING, false),
       title: this.savedExplore.title,
+      variables: this.interpolationService.getVariables(),
     };
     const timeRangeSearchSource = searchSource.create();
     timeRangeSearchSource.setField('filter', () => {

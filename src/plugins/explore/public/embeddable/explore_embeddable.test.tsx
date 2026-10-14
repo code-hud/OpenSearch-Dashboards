@@ -772,6 +772,52 @@ describe('ExploreEmbeddable', () => {
     expect(adaptLegacyDataSpy).toHaveBeenCalled();
   });
 
+  describe('data link variables', () => {
+    test('keeps dashboard variables for data links in search props', () => {
+      const getVariables = jest.fn().mockReturnValue([{ name: 'service', value: 'a' }]);
+      const parent = createTestContainer(
+        'links-var-emb',
+        {
+          panels: {
+            'links-var-emb': {
+              type: EXPLORE_EMBEDDABLE_TYPE,
+              explicitInput: { id: 'links-var-emb' },
+            },
+          },
+        },
+        { getVariables }
+      );
+      const mockServices = createMockServices();
+      const emb = new ExploreEmbeddable(
+        {
+          savedExplore: mockSavedExplore,
+          editUrl: '/app/explore/logs/test',
+          editPath: 'test',
+          indexPatterns: [],
+          editable: true,
+          filterManager: mockServices.filterManager,
+          services: mockServices,
+          editApp: 'explore/logs',
+        },
+        { ...mockInput, id: 'links-var-emb' },
+        mockExecuteTriggerActions,
+        parent
+      );
+
+      // @ts-ignore - private for testing
+      expect(emb.searchProps.variables).toEqual([{ name: 'service', value: 'a' }]);
+
+      getVariables.mockReturnValue([{ name: 'service', value: 'b' }]);
+      parent.variables$.next([{ id: 'service', name: 'service', current: ['b'] }]);
+
+      // @ts-ignore - private for testing
+      expect(emb.searchProps.variables).toEqual([{ name: 'service', value: 'b' }]);
+
+      emb.destroy();
+      parent.destroy();
+    });
+  });
+
   describe('variable interpolation in panel metadata', () => {
     test('interpolates input.title when it contains variables', () => {
       const mockInterpolation: Partial<IVariableInterpolationService> = {
