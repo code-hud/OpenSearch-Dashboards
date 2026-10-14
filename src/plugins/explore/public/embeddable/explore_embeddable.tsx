@@ -314,34 +314,43 @@ export class ExploreEmbeddable
             const hasLoading = variables.some((v) => 'loading' in v && v?.loading);
             if (hasLoading) return;
 
-            this.refreshLinkVariables();
-            this.handleVariablesChange();
+            const linkVariablesChanged = this.updateLinkVariables();
+            const refetching = this.handleVariablesChange();
+            // A refetch re-renders with the new variables; otherwise render here.
+            if (linkVariablesChanged && !refetching && this.node && this.searchProps) {
+              this.renderComponent(this.node, this.searchProps);
+            }
           });
       }
     }
   }
 
   /**
-   * Handle variable changes - interpolate query and refetch
+   * Table data links can use dashboard variables, so keep them in searchProps.
+   * Returns whether they changed. Variable option reloads (e.g. on a time range
+   * change) emit with the same values, and must not re-render the panel.
+   * The caller re-renders: searchProps is mutated in place, which is safe only
+   * because renderComponent creates a new memo component on every call.
    */
-  /**
-   * Table data links can use dashboard variables, so keep them current and
-   * re-render, also when the query itself does not use variables (then
-   * handleVariablesChange returns early and nothing else re-renders).
-   */
-  private refreshLinkVariables() {
+  private updateLinkVariables(): boolean {
     if (!this.searchProps) {
-      return;
+      return false;
     }
-    this.searchProps.variables = this.interpolationService.getVariables();
-    if (this.node) {
-      this.renderComponent(this.node, this.searchProps);
+    const variables = this.interpolationService.getVariables();
+    if (isEqual(variables, this.searchProps.variables)) {
+      return false;
     }
+    this.searchProps.variables = variables;
+    return true;
   }
 
-  private handleVariablesChange() {
+  /**
+   * Handle variable changes - interpolate query and refetch.
+   * Returns whether a refetch (which re-renders) was started.
+   */
+  private handleVariablesChange(): boolean {
     if (!this.originalQuery || !this.interpolationService.hasVariables(this.originalQuery)) {
-      return;
+      return false;
     }
 
     const { searchSource } = this.savedExplore;
@@ -352,7 +361,7 @@ export class ExploreEmbeddable
     );
 
     if (interpolatedQuery === this.lastInterpolatedQuery) {
-      return;
+      return false;
     }
     this.lastInterpolatedQuery = interpolatedQuery;
 
@@ -365,7 +374,9 @@ export class ExploreEmbeddable
 
     if (this.searchProps) {
       this.updateHandler(this.searchProps, true);
+      return true;
     }
+    return false;
   }
 
   private initializeSearchProps() {
