@@ -177,9 +177,12 @@ export const DataLinkModal: React.FC<DataLinkModalProps> = ({
             defaultMessage: 'URL',
           })}
           helpText={i18n.translate('explore.stylePanel.table.dataLinks.urlHelpText', {
-            defaultMessage: 'Use {cellValue} to include the cell value in the URL',
+            defaultMessage:
+              'Use {cellValue} for the cell value, {rowField} for a field of the same row, and {variable} for a dashboard variable',
             values: {
               cellValue: '${__value.text}',
+              rowField: '${__data.fields.name}',
+              variable: '$variable',
             },
           })}
         >
