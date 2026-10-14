@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { getTextColor } from './table_vis_utils';
 import { ColorMode } from '../types';
 import { DataLink } from './data_link_options';
+import { DataLinkVariable, resolveDataLinkUrl } from './data_link_utils';
 
 import './cell_value.scss';
 
@@ -21,6 +22,10 @@ type Props = Pick<EuiDataGridCellValueElementProps, 'setCellProps'> & {
   isPopoverOpen?: boolean;
   setPopoverOpen?: (open: boolean) => void;
   columnId?: string;
+  /** The whole row of the cell, for ${__data.fields.<name>} in data links */
+  row?: Record<string, unknown>;
+  /** Current dashboard variables, for $var / ${var} in data links */
+  variables?: DataLinkVariable[];
 };
 
 export const CellValue = (props: Props) => {
@@ -34,6 +39,8 @@ export const CellValue = (props: Props) => {
     isPopoverOpen,
     setPopoverOpen,
     columnId,
+    row,
+    variables,
   } = props;
 
   const valueDisplay =
@@ -58,9 +65,7 @@ export const CellValue = (props: Props) => {
     });
   }, [setCellProps, value, textAlign, color, colorMode]);
 
-  const resolveUrl = (url: string) => {
-    return url.replace('${__value.text}', encodeURIComponent(value ?? ''));
-  };
+  const resolveUrl = (url: string) => resolveDataLinkUrl(url, value, row, variables);
 
   const applicableLinks =
     dataLinks?.filter((link) => columnId && link.fields.includes(columnId)) || [];

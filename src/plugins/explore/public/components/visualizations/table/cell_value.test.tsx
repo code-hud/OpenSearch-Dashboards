@@ -143,6 +143,45 @@ describe('CellValue', () => {
     expect(link).toHaveAttribute('target', '_blank');
   });
 
+  it('resolves row fields and dashboard variables in a link', () => {
+    const links: DataLink[] = [
+      {
+        id: '1',
+        title: 'Open',
+        url: '/app?s=${__data.fields.service}&e=${__value.text}&env=$env',
+        openInNewTab: false,
+        fields: ['col1'],
+      },
+    ];
+    render(
+      <CellValue
+        {...baseProps}
+        dataLinks={links}
+        row={{ col1: 'TestValue', service: 'checkout' }}
+        variables={[{ name: 'env', value: 'prod' }]}
+      />
+    );
+    const link = screen.getByRole('link', { name: 'TestValue' });
+    expect(link).toHaveAttribute('href', '/app?s=checkout&e=TestValue&env=prod');
+  });
+
+  it('replaces every occurrence of the clicked value', () => {
+    const links: DataLink[] = [
+      {
+        id: '1',
+        title: 'Open',
+        url: '/a/${__value.text}/b/${__value.text}',
+        openInNewTab: false,
+        fields: ['col1'],
+      },
+    ];
+    render(<CellValue {...baseProps} dataLinks={links} />);
+    expect(screen.getByRole('link', { name: 'TestValue' })).toHaveAttribute(
+      'href',
+      '/a/TestValue/b/TestValue'
+    );
+  });
+
   it('renders boolean value as text inside a single link', () => {
     const links: DataLink[] = [
       {
