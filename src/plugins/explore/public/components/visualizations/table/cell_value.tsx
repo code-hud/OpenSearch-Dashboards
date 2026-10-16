@@ -22,9 +22,7 @@ type Props = Pick<EuiDataGridCellValueElementProps, 'setCellProps'> & {
   isPopoverOpen?: boolean;
   setPopoverOpen?: (open: boolean) => void;
   columnId?: string;
-  /** The whole row of the cell, for ${__data.fields.<name>} in data links */
   row?: Record<string, unknown>;
-  /** Current dashboard variables, for $var / ${var} in data links */
   variables?: DataLinkVariable[];
 };
 

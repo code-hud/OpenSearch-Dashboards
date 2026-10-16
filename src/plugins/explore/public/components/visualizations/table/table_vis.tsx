@@ -24,7 +24,6 @@ interface TableVisProps {
   showStyleSelector?: boolean;
   onStyleChange?: (updatedStyle: Partial<TableChartStyle>) => void;
   disableActions?: boolean;
-  /** Current dashboard variables, for $var / ${var} in data links */
   variables?: DataLinkVariable[];
 }
 

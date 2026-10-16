@@ -85,7 +85,6 @@ export interface SearchProps {
   chartType?: ChartType;
   activeTab?: string;
   styleOptions?: StyleOptions;
-  /** Current dashboard variables, for $var / ${var} in table data links */
   variables?: DataLinkVariable[];
   axisColumnMappings?: AxisColumnMappings;
   displayTimeColumn: boolean;
