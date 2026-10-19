@@ -90,13 +90,13 @@ For a complete reference of all currently defined rules, see the [Visualization 
 
 A table column can carry data links (`table/data_link_options.tsx`). Each link has a URL template that `resolveDataLinkUrl` (`table/data_link_utils.ts`) fills in when a cell renders. The grammar follows Grafana data links:
 
-| Placeholder                                                | Resolves to                                                                                 |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `${__value.text}`                                          | The clicked cell value, at every occurrence                                                 |
-| `${__data.fields.<name>}`                                  | A field of the same row. Flat field names; dots are allowed (`resource.service.name`)       |
-| `${__data.fields["<name>"]}`, `${__data.fields['<name>']}` | The same, for field names with spaces or other characters                                   |
-| `$var`, `${var}`                                           | The current value of a dashboard variable. A multi-value variable joins its values with `,` |
-| `${...:rison}`                                             | Any of the above, encoded with `rison.encode_uri` instead of `encodeURIComponent`           |
+| Placeholder                                                | Resolves to                                                                                                                                                                            |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `${__value.text}`                                          | The clicked cell value, at every occurrence                                                                                                                                            |
+| `${__data.fields.<name>}`                                  | A field of the same row. Flat field names; dots are allowed (`resource.service.name`)                                                                                                  |
+| `${__data.fields["<name>"]}`, `${__data.fields['<name>']}` | The same, for field names with spaces or other characters                                                                                                                              |
+| `$var`, `${var}`                                           | The current value of a dashboard variable. A multi-value variable joins its values with `,`; with "All" selected it gives the `$__all` marker, so the target dashboard selects All too |
+| `${...:rison}`                                             | Any of the above, encoded with `rison.encode_uri` instead of `encodeURIComponent`                                                                                                      |
 
 Rules:
 

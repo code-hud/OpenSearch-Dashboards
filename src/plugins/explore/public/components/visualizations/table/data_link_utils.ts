@@ -4,7 +4,7 @@
  */
 
 import rison from 'rison-node';
-import type { VariableValue } from '../../../../../dashboard/public';
+import { ALL_OPTION_VALUE, VariableValue } from '../../../../../dashboard/public';
 import { cellValueText } from './table_vis_utils';
 
 /**
@@ -45,7 +45,11 @@ const encode = (text: string | string[], asRison: boolean): string => {
   return Array.isArray(text) ? text.map(encodeURIComponent).join(',') : encodeURIComponent(text);
 };
 
-/** Returns undefined for an unknown variable, so the placeholder is kept. */
+/**
+ * Returns undefined for an unknown variable, so the placeholder is kept.
+ * With "All" selected, `values` holds every option; the link carries the
+ * dashboard's All marker instead, so the target selects All as well.
+ */
 const resolveVariable = (
   name: string,
   asRison: boolean,
@@ -54,6 +58,9 @@ const resolveVariable = (
   const variable = variables.find((v) => v.name === name);
   if (!variable) {
     return undefined;
+  }
+  if (variable.isAll) {
+    return encode(asRison ? [ALL_OPTION_VALUE] : ALL_OPTION_VALUE, asRison);
   }
   return encode(variable.multi ? (variable.values ?? []) : variable.value, asRison);
 };

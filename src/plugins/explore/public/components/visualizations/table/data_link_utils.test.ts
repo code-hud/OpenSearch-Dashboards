@@ -4,7 +4,7 @@
  */
 
 import { getStateFromOsdUrl } from '../../../../../opensearch_dashboards_utils/public';
-import type { VariableValue } from '../../../../../dashboard/public';
+import { ALL_OPTION_VALUE, VariableValue } from '../../../../../dashboard/public';
 import { resolveDataLinkUrl } from './data_link_utils';
 
 /** Reads _a the way the dashboard app does from a link relative to it. */
@@ -73,6 +73,30 @@ describe('resolveDataLinkUrl', () => {
 
   it('joins the values of a multi-value variable, each encoded', () => {
     expect(resolveDataLinkUrl('?r=$regions', 'x', {}, variables)).toBe('?r=eu%20west,us');
+  });
+
+  it('carries the All marker, not the expanded options, when All is selected', () => {
+    const all: VariableValue[] = [
+      { name: 'regions', value: 'eu,us', multi: true, values: ['eu', 'us'], isAll: true },
+    ];
+    expect(resolveDataLinkUrl('?r=$regions', 'x', {}, all)).toBe(
+      `?r=${encodeURIComponent(ALL_OPTION_VALUE)}`
+    );
+    expect(resolveDataLinkUrl('?r=${regions:rison}', 'x', {}, all)).toBe(
+      `?r=!('${ALL_OPTION_VALUE}')`
+    );
+  });
+
+  it('round-trips an All selection into the target dashboard state', () => {
+    const href = resolveDataLinkUrl(
+      '#/view/x?_a=(variables:!((id:regions,current:${regions:rison})))',
+      'x',
+      {},
+      [{ name: 'regions', value: '', multi: true, values: ['eu', 'us'], isAll: true }]
+    );
+    expect(readDashboardState(href)).toEqual({
+      variables: [{ id: 'regions', current: [ALL_OPTION_VALUE] }],
+    });
   });
 
   it('keeps an unknown variable, and $var when there are no variables', () => {
