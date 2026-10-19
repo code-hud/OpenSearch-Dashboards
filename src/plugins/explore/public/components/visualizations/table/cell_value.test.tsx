@@ -165,6 +165,46 @@ describe('CellValue', () => {
     expect(link).toHaveAttribute('href', '/app?s=checkout&e=TestValue&env=prod');
   });
 
+  it('shows plain text, with the reason, when a placeholder cannot be resolved', () => {
+    const links: DataLink[] = [
+      {
+        id: '1',
+        title: 'Open',
+        url: '/app?s=${__data.fields.missing}&env=$unknown',
+        openInNewTab: false,
+        fields: ['col1'],
+      },
+    ];
+    render(<CellValue {...baseProps} dataLinks={links} row={{ col1: 'TestValue' }} />);
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByText('TestValue')).toHaveAttribute(
+      'title',
+      'No link: ${__data.fields.missing}, $unknown could not be resolved for this row'
+    );
+  });
+
+  it('keeps only the links that resolve when a cell has several', () => {
+    const links: DataLink[] = [
+      {
+        id: '1',
+        title: 'Resolved',
+        url: '/a/${__value.text}',
+        openInNewTab: false,
+        fields: ['col1'],
+      },
+      {
+        id: '2',
+        title: 'Unresolved',
+        url: '/b/${__data.fields.missing}',
+        openInNewTab: false,
+        fields: ['col1'],
+      },
+    ];
+    render(<CellValue {...baseProps} dataLinks={links} />);
+    // One usable link renders directly, without a popover.
+    expect(screen.getByRole('link', { name: 'TestValue' })).toHaveAttribute('href', '/a/TestValue');
+  });
+
   it('replaces every occurrence of the clicked value', () => {
     const links: DataLink[] = [
       {

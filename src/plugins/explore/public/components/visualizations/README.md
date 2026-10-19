@@ -103,7 +103,7 @@ Rules:
 - All placeholders are resolved in one pass, so a substituted value is never expanded again.
 - Each value is encoded on its own. The default is `encodeURIComponent`. Use `:rison` for a value placed inside dashboard URL state (`_a`, `_g`), because percent-encoding does not protect `'` and `!` there.
 - An object value is JSON-stringified, as the cell displays it. `null` and `undefined` give an empty string.
-- A placeholder for a field that is not in the row, an unknown variable, or an unknown suffix stays in the URL unchanged.
+- A placeholder for a field that is not in the row, an unknown variable, or an unknown suffix stays in the URL unchanged, and the cell shows no link for that URL (the cell's tooltip names the placeholder).
 
 Example, a link that opens another dashboard with two variables set from the row and the clicked cell:
 

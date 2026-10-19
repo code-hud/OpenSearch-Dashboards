@@ -90,24 +90,46 @@ const resolveBraced = (
   return undefined;
 };
 
+export interface ResolvedDataLink {
+  url: string;
+  /** Placeholders left in `url` because they could not be resolved. */
+  unresolved: string[];
+}
+
 /**
  * Resolves the placeholders of a table data link URL in one pass, so a
  * substituted value is never expanded again. Placeholders for missing fields,
- * unknown variables or unknown suffixes stay as they are.
+ * unknown variables or unknown suffixes stay as they are and are reported in
+ * `unresolved`, so the caller can decide not to show the link.
  */
-export const resolveDataLinkUrl = (
+export const resolveDataLink = (
   url: string,
   value: unknown,
   row: Record<string, unknown> = {},
   variables: VariableValue[] = []
-): string =>
-  url.replace(
+): ResolvedDataLink => {
+  const unresolved: string[] = [];
+  const resolvedUrl = url.replace(
     PLACEHOLDER,
     (match: string, braced?: string, bareVariable?: string, bareFormat?: string) => {
       const resolved =
         braced !== undefined
           ? resolveBraced(braced, value, row, variables)
           : resolveVariable(bareVariable as string, bareFormat === RISON, variables);
-      return resolved ?? match;
+      if (resolved === undefined) {
+        unresolved.push(match);
+        return match;
+      }
+      return resolved;
     }
   );
+  return { url: resolvedUrl, unresolved };
+};
+
+/** The resolved URL only; see resolveDataLink. */
+export const resolveDataLinkUrl = (
+  url: string,
+  value: unknown,
+  row: Record<string, unknown> = {},
+  variables: VariableValue[] = []
+): string => resolveDataLink(url, value, row, variables).url;

@@ -5,7 +5,7 @@
 
 import { getStateFromOsdUrl } from '../../../../../opensearch_dashboards_utils/public';
 import { ALL_OPTION_VALUE, VariableValue } from '../../../../../dashboard/public';
-import { resolveDataLinkUrl } from './data_link_utils';
+import { resolveDataLink, resolveDataLinkUrl } from './data_link_utils';
 
 /** Reads _a the way the dashboard app does from a link relative to it. */
 const readDashboardState = (href: string) =>
@@ -97,6 +97,16 @@ describe('resolveDataLinkUrl', () => {
     expect(readDashboardState(href)).toEqual({
       variables: [{ id: 'regions', current: [ALL_OPTION_VALUE] }],
     });
+  });
+
+  it('reports the placeholders it could not resolve', () => {
+    expect(
+      resolveDataLink('?a=${__data.fields.missing}&b=$unknown&c=${__value.text}', 'v', row, [])
+    ).toEqual({
+      url: '?a=${__data.fields.missing}&b=$unknown&c=v',
+      unresolved: ['${__data.fields.missing}', '$unknown'],
+    });
+    expect(resolveDataLink('?e=$env', 'v', row, variables).unresolved).toEqual([]);
   });
 
   it('keeps an unknown variable, and $var when there are no variables', () => {

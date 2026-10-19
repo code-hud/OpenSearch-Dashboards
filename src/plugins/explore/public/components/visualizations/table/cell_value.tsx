@@ -6,10 +6,11 @@
 import React from 'react';
 import { EuiContextMenu, EuiDataGridCellValueElementProps, EuiPopover } from '@elastic/eui';
 import { useEffect } from 'react';
+import { i18n } from '@osd/i18n';
 import { cellValueText, getTextColor } from './table_vis_utils';
 import { ColorMode } from '../types';
 import { DataLink } from './data_link_options';
-import { resolveDataLinkUrl } from './data_link_utils';
+import { resolveDataLink } from './data_link_utils';
 import type { VariableValue } from '../../../../../dashboard/public';
 
 import './cell_value.scss';
@@ -63,21 +64,36 @@ export const CellValue = (props: Props) => {
     });
   }, [setCellProps, value, textAlign, color, colorMode]);
 
-  const resolveUrl = (url: string) => resolveDataLinkUrl(url, value, row, variables);
+  const resolvedLinks = (dataLinks ?? [])
+    .filter((link) => columnId && link.fields.includes(columnId))
+    .map((link) => ({ link, ...resolveDataLink(link.url, value, row, variables) }));
 
-  const applicableLinks =
-    dataLinks?.filter((link) => columnId && link.fields.includes(columnId)) || [];
-
-  if (!applicableLinks || applicableLinks.length === 0) {
+  if (resolvedLinks.length === 0) {
     return <span>{valueDisplay}</span>;
   }
 
+  // A URL with an unresolved placeholder would not open anything useful.
+  const applicableLinks = resolvedLinks.filter(({ unresolved }) => unresolved.length === 0);
+
+  if (applicableLinks.length === 0) {
+    const placeholders = resolvedLinks.flatMap(({ unresolved }) => unresolved);
+    return (
+      <span
+        title={i18n.translate('explore.stylePanel.table.dataLinks.unresolvedTitle', {
+          defaultMessage: 'No link: {placeholders} could not be resolved for this row',
+          values: { placeholders: Array.from(new Set(placeholders)).join(', ') },
+        })}
+      >
+        {valueDisplay}
+      </span>
+    );
+  }
+
   if (applicableLinks.length === 1) {
-    const link = applicableLinks[0];
-    const resolvedUrl = resolveUrl(link.url);
+    const { link, url } = applicableLinks[0];
     return (
       <a
-        href={resolvedUrl}
+        href={url}
         target={link.openInNewTab ? '_blank' : '_self'}
         rel={link.openInNewTab ? 'noopener noreferrer' : undefined}
       >
@@ -86,9 +102,9 @@ export const CellValue = (props: Props) => {
     );
   }
 
-  const contextMenuItems = applicableLinks.map((link) => ({
+  const contextMenuItems = applicableLinks.map(({ link, url }) => ({
     name: link.title,
-    href: resolveUrl(link.url),
+    href: url,
     target: link.openInNewTab ? '_blank' : '_self',
     rel: link.openInNewTab ? 'noopener noreferrer' : undefined,
     icon: 'link',
