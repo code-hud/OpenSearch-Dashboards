@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 import { getTextColor } from './table_vis_utils';
 import { ColorMode } from '../types';
 import { DataLink } from './data_link_options';
-import { DataLinkVariable, resolveDataLinkUrl } from './data_link_utils';
+import { DataLinkVariable, cellValueText, resolveDataLinkUrl } from './data_link_utils';
 
 import './cell_value.scss';
 
@@ -41,8 +41,7 @@ export const CellValue = (props: Props) => {
     variables,
   } = props;
 
-  const valueDisplay =
-    value !== null && typeof value === 'object' ? JSON.stringify(value) : `${value ?? ''}`;
+  const valueDisplay = cellValueText(value);
 
   useEffect(() => {
     const cellStyle: React.CSSProperties = { textAlign };

@@ -40,16 +40,17 @@ const VARIABLE = /^(\w+)(:rison)?$/;
 
 const RISON = ':rison';
 
-const textOf = (value: unknown): string =>
-  value === null || value === undefined
-    ? ''
-    : typeof value === 'object'
-      ? JSON.stringify(value)
-      : String(value);
+/** The text a table cell shows for a value. Data links carry the same text. */
+export const cellValueText = (value: unknown): string => {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  return typeof value === 'object' ? JSON.stringify(value) : String(value);
+};
 
 /** :rison uses rison.encode_uri. Everything else is a percent-encoded query value. */
 const encode = (value: unknown, asRison: boolean): string =>
-  asRison ? rison.encode_uri(textOf(value)) : encodeURIComponent(textOf(value));
+  asRison ? rison.encode_uri(cellValueText(value)) : encodeURIComponent(cellValueText(value));
 
 /** Returns undefined for an unknown variable, so the placeholder is kept. */
 const resolveVariable = (
