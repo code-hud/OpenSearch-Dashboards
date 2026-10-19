@@ -3,20 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import rison from 'rison-node';
-import { parse as parseUrl } from 'url';
+import { getStateFromOsdUrl } from '../../../../../opensearch_dashboards_utils/public';
 import { resolveDataLinkUrl, DataLinkVariable } from './data_link_utils';
 
-/**
- * Same two steps the dashboard uses to read _a: url.parse on the hash
- * (querystring decode), then rison.decode. See parseUrlHash and decodeState.
- */
-const readDashboardState = (href: string) => {
-  const absolute = href.startsWith('#') ? `http://localhost/app/dashboards${href}` : href;
-  const hash = parseUrl(absolute, true).hash ?? '';
-  const query = parseUrl(hash.slice(1), true).query;
-  return rison.decode(String(query._a));
-};
+/** Reads _a the way the dashboard app does from a link relative to it. */
+const readDashboardState = (href: string) =>
+  getStateFromOsdUrl('_a', `http://localhost/app/dashboards${href}`);
 
 describe('resolveDataLinkUrl', () => {
   const row = {
