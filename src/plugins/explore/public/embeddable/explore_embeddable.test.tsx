@@ -806,12 +806,17 @@ describe('ExploreEmbeddable', () => {
 
       // @ts-ignore - private for testing
       expect(emb.searchProps.variables).toEqual([{ name: 'service', value: 'a' }]);
+      // @ts-ignore - private for testing
+      const previousSearchProps = emb.searchProps;
 
       getVariables.mockReturnValue([{ name: 'service', value: 'b' }]);
       parent.variables$.next([{ id: 'service', name: 'service', current: ['b'] }]);
 
       // @ts-ignore - private for testing
       expect(emb.searchProps.variables).toEqual([{ name: 'service', value: 'b' }]);
+      // A new object, so a memoized component re-renders on the prop change.
+      // @ts-ignore - private for testing
+      expect(emb.searchProps).not.toBe(previousSearchProps);
 
       emb.destroy();
       parent.destroy();

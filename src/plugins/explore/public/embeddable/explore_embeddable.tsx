@@ -328,8 +328,7 @@ export class ExploreEmbeddable
    * Table data links can use dashboard variables, so keep them in searchProps.
    * Returns whether they changed. Variable option reloads (e.g. on a time range
    * change) emit with the same values, and must not re-render the panel.
-   * The caller re-renders: searchProps is mutated in place, which is safe only
-   * because renderComponent creates a new memo component on every call.
+   * The caller re-renders with the new searchProps object.
    */
   private updateLinkVariables(): boolean {
     if (!this.searchProps) {
@@ -339,7 +338,7 @@ export class ExploreEmbeddable
     if (isEqual(variables, this.searchProps.variables)) {
       return false;
     }
-    this.searchProps.variables = variables;
+    this.searchProps = { ...this.searchProps, variables };
     return true;
   }
 
