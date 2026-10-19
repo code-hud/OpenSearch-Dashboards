@@ -26,14 +26,24 @@ const PLACEHOLDER = /\$\{([^}]+)\}|\$(\w+)(:rison)?/g;
 
 /** Braced bodies. Each one captures the format suffix as its last group. */
 const CLICKED_VALUE = /^__value\.text(:rison)?$/;
+// The dotted name is lazy so that a trailing `:rison` is the suffix, while a
+// colon elsewhere (`http:status`) stays part of the name. Keep it lazy.
 const ROW_FIELD = /^__data\.fields(?:\.(.+?)|\[\s*"([^"]*)"\s*\]|\[\s*'([^']*)'\s*\])(:rison)?$/;
 const VARIABLE = /^(\w+)(:rison)?$/;
 
 const RISON = ':rison';
 
-/** :rison uses rison.encode_uri. Everything else is a percent-encoded query value. */
-const encode = (value: unknown, asRison: boolean): string =>
-  asRison ? rison.encode_uri(cellValueText(value)) : encodeURIComponent(cellValueText(value));
+/**
+ * :rison uses rison.encode_uri, so a list becomes one rison array. Otherwise
+ * each item is a percent-encoded query value and a list is joined with `,`
+ * (a `,` inside an item is `%2C`, so the join is unambiguous).
+ */
+const encode = (text: string | string[], asRison: boolean): string => {
+  if (asRison) {
+    return rison.encode_uri(text);
+  }
+  return Array.isArray(text) ? text.map(encodeURIComponent).join(',') : encodeURIComponent(text);
+};
 
 /** Returns undefined for an unknown variable, so the placeholder is kept. */
 const resolveVariable = (
@@ -45,13 +55,7 @@ const resolveVariable = (
   if (!variable) {
     return undefined;
   }
-  if (variable.multi) {
-    const values = variable.values ?? [];
-    return asRison
-      ? rison.encode_uri(values)
-      : values.map((item) => encodeURIComponent(item)).join(',');
-  }
-  return encode(variable.value, asRison);
+  return encode(variable.multi ? (variable.values ?? []) : variable.value, asRison);
 };
 
 /** Returns undefined for an unknown body, field or variable, so the placeholder is kept. */
@@ -63,13 +67,13 @@ const resolveBraced = (
 ): string | undefined => {
   const clicked = CLICKED_VALUE.exec(body);
   if (clicked) {
-    return encode(value, clicked[1] === RISON);
+    return encode(cellValueText(value), clicked[1] === RISON);
   }
   const field = ROW_FIELD.exec(body);
   if (field) {
     const name = field[1] ?? field[2] ?? field[3];
     return Object.prototype.hasOwnProperty.call(row, name)
-      ? encode(row[name], field[4] === RISON)
+      ? encode(cellValueText(row[name]), field[4] === RISON)
       : undefined;
   }
   const variable = VARIABLE.exec(body);
