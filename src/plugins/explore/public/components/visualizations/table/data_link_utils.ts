@@ -5,6 +5,7 @@
 
 import rison from 'rison-node';
 import type { VariableValue } from '../../../../../dashboard/public';
+import { cellValueText } from './table_vis_utils';
 
 /**
  * Placeholder grammar, compatible with Grafana data links:
@@ -29,14 +30,6 @@ const ROW_FIELD = /^__data\.fields(?:\.(.+?)|\[\s*"([^"]*)"\s*\]|\[\s*'([^']*)'\
 const VARIABLE = /^(\w+)(:rison)?$/;
 
 const RISON = ':rison';
-
-/** The text a table cell shows for a value. Data links carry the same text. */
-export const cellValueText = (value: unknown): string => {
-  if (value === null || value === undefined) {
-    return '';
-  }
-  return typeof value === 'object' ? JSON.stringify(value) : String(value);
-};
 
 /** :rison uses rison.encode_uri. Everything else is a percent-encoded query value. */
 const encode = (value: unknown, asRison: boolean): string =>

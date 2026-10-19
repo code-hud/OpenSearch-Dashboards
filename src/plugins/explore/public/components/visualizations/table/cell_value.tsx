@@ -6,10 +6,10 @@
 import React from 'react';
 import { EuiContextMenu, EuiDataGridCellValueElementProps, EuiPopover } from '@elastic/eui';
 import { useEffect } from 'react';
-import { getTextColor } from './table_vis_utils';
+import { cellValueText, getTextColor } from './table_vis_utils';
 import { ColorMode } from '../types';
 import { DataLink } from './data_link_options';
-import { cellValueText, resolveDataLinkUrl } from './data_link_utils';
+import { resolveDataLinkUrl } from './data_link_utils';
 import type { VariableValue } from '../../../../../dashboard/public';
 
 import './cell_value.scss';
