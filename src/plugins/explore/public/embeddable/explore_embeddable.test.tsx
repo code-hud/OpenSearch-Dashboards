@@ -822,6 +822,29 @@ describe('ExploreEmbeddable', () => {
       parent.destroy();
     });
 
+    test('has no variables outside a dashboard', () => {
+      const mockServices = createMockServices();
+      const emb = new ExploreEmbeddable(
+        {
+          savedExplore: mockSavedExplore,
+          editUrl: '/app/explore/logs/test',
+          editPath: 'test',
+          indexPatterns: [],
+          editable: true,
+          filterManager: mockServices.filterManager,
+          services: mockServices,
+          editApp: 'explore/logs',
+        },
+        { ...mockInput, id: 'links-no-parent-emb' },
+        mockExecuteTriggerActions
+      );
+
+      // @ts-ignore - private for testing
+      expect(emb.searchProps.variables).toEqual([]);
+
+      emb.destroy();
+    });
+
     const createRenderedEmbeddable = (
       id: string,
       interpolation: Partial<IVariableInterpolationService>

@@ -238,6 +238,47 @@ describe('CellValue', () => {
     });
   });
 
+  it('resolves row fields and dashboard variables in every popover link', async () => {
+    const links: DataLink[] = [
+      {
+        id: '1',
+        title: 'Service',
+        url: '/service?name=${__data.fields.service}&env=$env',
+        openInNewTab: false,
+        fields: ['col1'],
+      },
+      {
+        id: '2',
+        title: 'Endpoint',
+        url: '/endpoint?path=${__value.text}&env=${env}',
+        openInNewTab: true,
+        fields: ['col1'],
+      },
+    ];
+
+    render(
+      <CellValue
+        {...baseProps}
+        dataLinks={links}
+        isPopoverOpen={true}
+        setPopoverOpen={jest.fn()}
+        row={{ col1: 'TestValue', service: 'checkout' }}
+        variables={[{ name: 'env', value: 'prod' }]}
+      />
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'Service' })).toHaveAttribute(
+        'href',
+        '/service?name=checkout&env=prod'
+      );
+      expect(screen.getByRole('link', { name: 'Endpoint' })).toHaveAttribute(
+        'href',
+        '/endpoint?path=TestValue&env=prod'
+      );
+    });
+  });
+
   it('applies colored text style when colorMode is colored_text', () => {
     const setCellProps = jest.fn();
     render(
