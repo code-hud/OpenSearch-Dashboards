@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/* eslint-disable no-script-url */
+
 import { getStateFromOsdUrl } from '../../../../../opensearch_dashboards_utils/public';
 import { ALL_OPTION_VALUE, VariableValue } from '../../../../../dashboard/public';
-import { resolveDataLink, resolveDataLinkUrl } from './data_link_utils';
+import { isNavigableDataLinkUrl, resolveDataLink, resolveDataLinkUrl } from './data_link_utils';
 
 /** Reads _a the way the dashboard app does from a link relative to it. */
 const readDashboardState = (href: string) =>
@@ -109,6 +111,19 @@ describe('resolveDataLinkUrl', () => {
     expect(resolveDataLink('?e=$env', 'v', row, variables).unresolved).toEqual([]);
   });
 
+  it('cannot form a script URL from a cell value under either encoding', () => {
+    for (const payload of ['javascript:alert(1)', 'data:text/html,x', 'vbscript:x']) {
+      for (const url of [
+        resolveDataLinkUrl('${__value.text}', payload),
+        resolveDataLinkUrl('${__value.text:rison}', payload),
+        resolveDataLinkUrl('${__data.fields.p:rison}', 'x', { p: payload }),
+      ]) {
+        expect(isNavigableDataLinkUrl(url)).toBe(true);
+        expect(new URL(url, 'http://base.invalid').protocol).toBe('http:');
+      }
+    }
+  });
+
   it('keeps an unknown variable, and $var when there are no variables', () => {
     expect(resolveDataLinkUrl('?u=$unknown', 'x', {}, variables)).toBe('?u=$unknown');
     expect(resolveDataLinkUrl('?e=$env', 'x')).toBe('?e=$env');
@@ -122,6 +137,18 @@ describe('resolveDataLinkUrl', () => {
 
   it('encodes reserved characters', () => {
     expect(resolveDataLinkUrl('?v=${__value.text}', 'a&b#c/d e')).toBe('?v=a%26b%23c%2Fd%20e');
+  });
+
+  it('tells navigable URLs from script schemes', () => {
+    expect(isNavigableDataLinkUrl('/app/x?q=1')).toBe(true);
+    expect(isNavigableDataLinkUrl('#/view/x')).toBe(true);
+    expect(isNavigableDataLinkUrl('https://example.org/')).toBe(true);
+    expect(isNavigableDataLinkUrl('mailto:a@example.org')).toBe(true);
+    expect(isNavigableDataLinkUrl('javascript:alert(1)')).toBe(false);
+    expect(isNavigableDataLinkUrl(' JaVaScRiPt:alert(1)')).toBe(false);
+    expect(isNavigableDataLinkUrl('java\tscript:alert(1)')).toBe(false);
+    expect(isNavigableDataLinkUrl('data:text/html,x')).toBe(false);
+    expect(isNavigableDataLinkUrl('vbscript:x')).toBe(false);
   });
 
   it('keeps a URL without placeholders unchanged', () => {

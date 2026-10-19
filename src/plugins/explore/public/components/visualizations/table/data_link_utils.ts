@@ -126,6 +126,23 @@ export const resolveDataLink = (
   return { url: resolvedUrl, unresolved };
 };
 
+// eslint-disable-next-line no-script-url
+const SCRIPT_PROTOCOLS = new Set(['javascript:', 'data:', 'vbscript:']);
+
+/**
+ * A resolved link may only navigate. Substituted values are encoded (a rison
+ * string with a `:` is quoted, so it cannot start a scheme), but the template
+ * itself is author input. Parsing with a base also catches scheme obfuscation
+ * such as whitespace or mixed case.
+ */
+export const isNavigableDataLinkUrl = (url: string): boolean => {
+  try {
+    return !SCRIPT_PROTOCOLS.has(new URL(url, 'http://relative.invalid').protocol);
+  } catch {
+    return false;
+  }
+};
+
 /** The resolved URL only; see resolveDataLink. */
 export const resolveDataLinkUrl = (
   url: string,

@@ -183,6 +183,22 @@ describe('CellValue', () => {
     );
   });
 
+  it('does not render a link with a script scheme', () => {
+    const links: DataLink[] = [
+      {
+        id: '1',
+        title: 'Bad',
+        // eslint-disable-next-line no-script-url
+        url: 'javascript:alert(1)',
+        openInNewTab: false,
+        fields: ['col1'],
+      },
+    ];
+    render(<CellValue {...baseProps} dataLinks={links} />);
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByText('TestValue')).not.toHaveAttribute('title');
+  });
+
   it('keeps only the links that resolve when a cell has several', () => {
     const links: DataLink[] = [
       {

@@ -10,7 +10,7 @@ import { i18n } from '@osd/i18n';
 import { cellValueText, getTextColor } from './table_vis_utils';
 import { ColorMode } from '../types';
 import { DataLink } from './data_link_options';
-import { resolveDataLink } from './data_link_utils';
+import { isNavigableDataLinkUrl, resolveDataLink } from './data_link_utils';
 import type { VariableValue } from '../../../../../dashboard/public';
 
 import './cell_value.scss';
@@ -72,21 +72,22 @@ export const CellValue = (props: Props) => {
     return <span>{valueDisplay}</span>;
   }
 
-  // A URL with an unresolved placeholder would not open anything useful.
-  const applicableLinks = resolvedLinks.filter(({ unresolved }) => unresolved.length === 0);
+  // A URL with an unresolved placeholder would not open anything useful, and
+  // one with a script scheme must not open at all.
+  const applicableLinks = resolvedLinks.filter(
+    ({ url, unresolved }) => unresolved.length === 0 && isNavigableDataLinkUrl(url)
+  );
 
   if (applicableLinks.length === 0) {
-    const placeholders = resolvedLinks.flatMap(({ unresolved }) => unresolved);
-    return (
-      <span
-        title={i18n.translate('explore.stylePanel.table.dataLinks.unresolvedTitle', {
-          defaultMessage: 'No link: {placeholders} could not be resolved for this row',
-          values: { placeholders: Array.from(new Set(placeholders)).join(', ') },
-        })}
-      >
-        {valueDisplay}
-      </span>
-    );
+    const placeholders = Array.from(new Set(resolvedLinks.flatMap((l) => l.unresolved)));
+    const title =
+      placeholders.length > 0
+        ? i18n.translate('explore.stylePanel.table.dataLinks.unresolvedTitle', {
+            defaultMessage: 'No link: {placeholders} could not be resolved for this row',
+            values: { placeholders: placeholders.join(', ') },
+          })
+        : undefined;
+    return <span title={title}>{valueDisplay}</span>;
   }
 
   if (applicableLinks.length === 1) {
