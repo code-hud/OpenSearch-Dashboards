@@ -178,12 +178,13 @@ export const DataLinkModal: React.FC<DataLinkModalProps> = ({
           })}
           helpText={i18n.translate('explore.stylePanel.table.dataLinks.urlHelpText', {
             defaultMessage:
-              'Use {cellValue} for the cell value, {rowField} for a field of the same row, and {variable} for a dashboard variable. Use {risonVariable} inside a dashboard link.',
+              'Use {cellValue} for the clicked cell value, {rowField} for another field of the same row, and {variable} for a dashboard variable. Add {risonSuffix} to a placeholder whose value goes into dashboard URL state, for example {risonExample}.',
             values: {
               cellValue: '${__value.text}',
               rowField: '${__data.fields.name}',
               variable: '$variable',
-              risonVariable: '${variable:rison}',
+              risonSuffix: ':rison',
+              risonExample: '${__value.text:rison}',
             },
           })}
         >
