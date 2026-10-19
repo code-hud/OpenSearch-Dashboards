@@ -18,17 +18,9 @@ export interface DataLinkVariable {
 
 // ${__value.text} | ${__data.fields.<name>} | ${__data.fields["<name>"]} |
 // ${__data.fields['<name>']} | ${<variable>} | $<variable>
-// An optional :uri (the default) or :rison suffix selects the encoding.
-const FORMAT = '(?::(rison|uri))?';
-const PLACEHOLDER = new RegExp(
-  [
-    `\\$\\{__value\\.text${FORMAT}\\}`,
-    `\\$\\{__data\\.fields(?:\\.([^}[\\]"']+?)|\\[\\s*"([^"]*)"\\s*\\]|\\[\\s*'([^']*)'\\s*\\])${FORMAT}\\}`,
-    `\\$\\{(\\w+)${FORMAT}\\}`,
-    `\\$(\\w+)${FORMAT}`,
-  ].join('|'),
-  'g'
-);
+// Any of those may end with :rison. The suffix is not a capturing group.
+const PLACEHOLDER =
+  /\$\{__value\.text(?::rison)?\}|\$\{__data\.fields(?:\.([^}[\]"']+?)|\[\s*"([^"]*)"\s*\]|\[\s*'([^']*)'\s*\])(?::rison)?\}|\$\{(\w+)(?::rison)?\}|\$(\w+)(?::rison)?/g;
 
 const textOf = (value: unknown): string =>
   value === null || value === undefined
@@ -37,21 +29,16 @@ const textOf = (value: unknown): string =>
       ? JSON.stringify(value)
       : String(value);
 
-/**
- * :uri percent-encodes a query parameter. :rison uses rison.encode_uri, the
- * form a dashboard hash keeps after its query parser runs.
- */
-const applyFormat = (value: unknown, format?: string): string => {
-  const text = textOf(value);
-  return format === 'rison' ? rison.encode_uri(text) : encodeURIComponent(text);
-};
+/** :rison uses rison.encode_uri. Everything else is a percent-encoded query value. */
+const encode = (value: unknown, asRison: boolean): string =>
+  asRison ? rison.encode_uri(textOf(value)) : encodeURIComponent(textOf(value));
+
+const endsWithRison = (match: string) => match.endsWith(':rison}') || match.endsWith(':rison');
 
 /**
  * Resolves the placeholders of a table data link URL in one pass, so a
- * substituted value is never expanded again. The default encoding is
- * percent-encoding. A :rison suffix encodes for a dashboard _a link.
- * Placeholders for missing fields, unknown variables, or an unknown suffix
- * stay as they are.
+ * substituted value is never expanded again. Placeholders for missing fields
+ * or unknown variables stay as they are.
  */
 export const resolveDataLinkUrl = (
   url: string,
@@ -63,37 +50,32 @@ export const resolveDataLinkUrl = (
     PLACEHOLDER,
     (
       match: string,
-      valueFormat?: string,
       dotField?: string,
       doubleQuotedField?: string,
       singleQuotedField?: string,
-      fieldFormat?: string,
       bracedVariable?: string,
-      bracedFormat?: string,
-      simpleVariable?: string,
-      simpleFormat?: string
+      simpleVariable?: string
     ) => {
-      // The closing } is not part of the prefix: a :rison suffix sits before it.
+      const asRison = endsWithRison(match);
       if (match.startsWith('${__value.text')) {
-        return applyFormat(value, valueFormat);
+        return encode(value, asRison);
       }
       const field = dotField ?? doubleQuotedField ?? singleQuotedField;
       if (field !== undefined) {
         return Object.prototype.hasOwnProperty.call(row, field)
-          ? applyFormat(row[field], fieldFormat)
+          ? encode(row[field], asRison)
           : match;
       }
       const variable = variables.find((v) => v.name === (bracedVariable ?? simpleVariable));
       if (!variable) {
         return match;
       }
-      const format = bracedFormat ?? simpleFormat;
       if (variable.multi) {
         const values = variable.values ?? [];
-        return format === 'rison'
+        return asRison
           ? rison.encode_uri(values)
           : values.map((item) => encodeURIComponent(item)).join(',');
       }
-      return applyFormat(variable.value, format);
+      return encode(variable.value, asRison);
     }
   );

@@ -103,10 +103,11 @@ describe('resolveDataLinkUrl', () => {
     );
   });
 
-  it('percent-encodes by default, including an explicit :uri suffix', () => {
+  it('percent-encodes when there is no :rison suffix', () => {
     expect(resolveDataLinkUrl('?v=${__value.text}', "o'brien /x")).toBe("?v=o'brien%20%2Fx");
-    expect(resolveDataLinkUrl('?v=${__value.text:uri}', '/api/orders')).toBe('?v=%2Fapi%2Forders');
-    expect(resolveDataLinkUrl('?e=${env:uri}', 'x', {}, variables)).toBe('?e=prod');
+    expect(resolveDataLinkUrl('?v=${__value.text:uri}', '/api/orders')).toBe(
+      '?v=${__value.text:uri}'
+    );
   });
 
   it('rison-encodes a :rison suffix without percent-encoding the value', () => {
