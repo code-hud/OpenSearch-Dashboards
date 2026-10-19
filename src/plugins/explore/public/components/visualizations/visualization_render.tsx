@@ -22,13 +22,13 @@ import { SplitContainer } from './split_container';
 import { CustomLegend } from './custom_legend';
 import type { VisualizationRenderContext } from './utils/use_visualization_types';
 import { LegendItem, LegendTarget } from './utils/legend';
-import { DataLinkVariable } from './table/data_link_utils';
+import type { VariableValue } from '../../../../dashboard/public';
 
 interface Props {
   data$: Observable<VisData | undefined>;
   config$: Observable<RenderChartConfig | undefined>;
   showRawTable$: Observable<boolean>;
-  variables$?: Observable<DataLinkVariable[]>;
+  variables$?: Observable<VariableValue[]>;
   timeRange?: TimeRange;
   onSelectTimeRange?: (timeRange?: TimeRange) => void;
   onStyleChange?: (updatedStyle: Partial<TableChartStyle>) => void;
@@ -40,7 +40,7 @@ interface CommonProps {
   visConfig: RenderChartConfig | undefined;
   showRawTable: boolean;
   /** Dashboard variables for table data links. */
-  variables?: DataLinkVariable[];
+  variables?: VariableValue[];
   timeRange?: TimeRange;
   onSelectTimeRange?: (timeRange?: TimeRange) => void;
   onStyleChange?: (updatedStyle: Partial<TableChartStyle>) => void;
@@ -274,7 +274,7 @@ export const CommonVisualizationRender = ({
   return <VisualizationEmptyState />;
 };
 
-const NO_VARIABLES$ = new BehaviorSubject<DataLinkVariable[]>([]);
+const NO_VARIABLES$ = new BehaviorSubject<VariableValue[]>([]);
 
 export const VisualizationRender = ({
   data$,

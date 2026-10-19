@@ -810,9 +810,10 @@ describe('dataLinkVariables$', () => {
   test('emits only when the variables change, and reaches the render', () => {
     const builder = new VisualizationBuilder({});
     const emitted: unknown[] = [];
-    const subscription = builder
-      .renderVisualization({})
-      .props.variables$.subscribe((variables: unknown) => emitted.push(variables));
+    const subscription = builder.dataLinkVariables$.subscribe((variables) =>
+      emitted.push(variables)
+    );
+    expect(builder.renderVisualization({}).props.variables$).toBe(builder.dataLinkVariables$);
 
     builder.setDataLinkVariables([{ name: 'env', value: 'prod' }]);
     builder.setDataLinkVariables([{ name: 'env', value: 'prod' }]);

@@ -10,7 +10,7 @@ import { defaultTableChartStyles, CellTypeConfig, TableChartStyle } from './tabl
 import { FilterConfig, TableColumnHeader } from './table_vis_filter';
 import { calculateValue } from '../utils/calculation';
 import { CellValue } from './cell_value';
-import { DataLinkVariable } from './data_link_utils';
+import type { VariableValue } from '../../../../../dashboard/public';
 import { getThresholdByValue } from '../utils/utils';
 import { matchesFilter } from './table_vis_utils';
 
@@ -24,7 +24,7 @@ interface TableVisProps {
   showStyleSelector?: boolean;
   onStyleChange?: (updatedStyle: Partial<TableChartStyle>) => void;
   disableActions?: boolean;
-  variables?: DataLinkVariable[];
+  variables?: VariableValue[];
 }
 
 export const TableVis = React.memo(

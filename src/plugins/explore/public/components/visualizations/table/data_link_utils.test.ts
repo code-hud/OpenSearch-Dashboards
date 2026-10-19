@@ -4,7 +4,8 @@
  */
 
 import { getStateFromOsdUrl } from '../../../../../opensearch_dashboards_utils/public';
-import { resolveDataLinkUrl, DataLinkVariable } from './data_link_utils';
+import type { VariableValue } from '../../../../../dashboard/public';
+import { resolveDataLinkUrl } from './data_link_utils';
 
 /** Reads _a the way the dashboard app does from a link relative to it. */
 const readDashboardState = (href: string) =>
@@ -18,7 +19,7 @@ describe('resolveDataLinkUrl', () => {
     empty: null,
     nested: { a: 1 },
   };
-  const variables: DataLinkVariable[] = [
+  const variables: VariableValue[] = [
     { name: 'env', value: 'prod' },
     { name: 'regions', value: 'eu,us', multi: true, values: ['eu west', 'us'] },
   ];

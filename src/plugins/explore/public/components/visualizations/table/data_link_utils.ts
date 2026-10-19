@@ -4,17 +4,7 @@
  */
 
 import rison from 'rison-node';
-
-/**
- * A dashboard variable as a data link sees it. Structurally compatible with
- * VariableValue from the dashboard plugin.
- */
-export interface DataLinkVariable {
-  name: string;
-  value: string;
-  multi?: boolean;
-  values?: string[];
-}
+import type { VariableValue } from '../../../../../dashboard/public';
 
 /**
  * Placeholder grammar, compatible with Grafana data links:
@@ -56,7 +46,7 @@ const encode = (value: unknown, asRison: boolean): string =>
 const resolveVariable = (
   name: string,
   asRison: boolean,
-  variables: DataLinkVariable[]
+  variables: VariableValue[]
 ): string | undefined => {
   const variable = variables.find((v) => v.name === name);
   if (!variable) {
@@ -76,7 +66,7 @@ const resolveBraced = (
   body: string,
   value: unknown,
   row: Record<string, unknown>,
-  variables: DataLinkVariable[]
+  variables: VariableValue[]
 ): string | undefined => {
   const clicked = CLICKED_VALUE.exec(body);
   if (clicked) {
@@ -105,7 +95,7 @@ export const resolveDataLinkUrl = (
   url: string,
   value: unknown,
   row: Record<string, unknown> = {},
-  variables: DataLinkVariable[] = []
+  variables: VariableValue[] = []
 ): string =>
   url.replace(
     PLACEHOLDER,

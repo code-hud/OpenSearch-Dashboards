@@ -9,7 +9,8 @@ import { useEffect } from 'react';
 import { getTextColor } from './table_vis_utils';
 import { ColorMode } from '../types';
 import { DataLink } from './data_link_options';
-import { DataLinkVariable, cellValueText, resolveDataLinkUrl } from './data_link_utils';
+import { cellValueText, resolveDataLinkUrl } from './data_link_utils';
+import type { VariableValue } from '../../../../../dashboard/public';
 
 import './cell_value.scss';
 
@@ -23,7 +24,7 @@ type Props = Pick<EuiDataGridCellValueElementProps, 'setCellProps'> & {
   setPopoverOpen?: (open: boolean) => void;
   columnId?: string;
   row?: Record<string, unknown>;
-  variables?: DataLinkVariable[];
+  variables?: VariableValue[];
 };
 
 export const CellValue = (props: Props) => {

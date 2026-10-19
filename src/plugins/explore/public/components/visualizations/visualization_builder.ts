@@ -25,7 +25,7 @@ import { AxisFieldNameMappings, RenderChartConfig } from './types';
 import { TimeRange } from '../../../../data/common';
 import { ITransformationService } from '../data_transformations/types';
 import { createNoOpTransformationService } from '../data_transformations/transformation_service';
-import { DataLinkVariable } from './table/data_link_utils';
+import type { VariableValue } from '../../../../dashboard/public';
 
 interface VisState {
   title?: string;
@@ -56,7 +56,7 @@ export class VisualizationBuilder {
   showRawTable$ = new BehaviorSubject<boolean>(false);
   isVisDirty$ = new BehaviorSubject<boolean>(false);
   /** Dashboard variables for table data links, when editing a dashboard panel. */
-  dataLinkVariables$ = new BehaviorSubject<DataLinkVariable[]>([]);
+  dataLinkVariables$ = new BehaviorSubject<VariableValue[]>([]);
 
   constructor({ getUrlStateStorage }: Options) {
     if (getUrlStateStorage) {
@@ -64,7 +64,7 @@ export class VisualizationBuilder {
     }
   }
 
-  setDataLinkVariables(variables: DataLinkVariable[]) {
+  setDataLinkVariables(variables: VariableValue[]) {
     if (!isEqual(variables, this.dataLinkVariables$.value)) {
       this.dataLinkVariables$.next(variables);
     }
@@ -575,7 +575,7 @@ export class VisualizationBuilder {
     this.data$ = new BehaviorSubject<VisData | undefined>(undefined);
     this.showRawTable$ = new BehaviorSubject<boolean>(false);
     this.isVisDirty$ = new BehaviorSubject<boolean>(false);
-    this.dataLinkVariables$ = new BehaviorSubject<DataLinkVariable[]>([]);
+    this.dataLinkVariables$ = new BehaviorSubject<VariableValue[]>([]);
     this.transformationService = createNoOpTransformationService();
     this.lastRawRows = [];
     this.lastSchema = [];

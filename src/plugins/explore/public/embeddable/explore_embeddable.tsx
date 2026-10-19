@@ -24,6 +24,7 @@ import { Container, Embeddable, IEmbeddable } from '../../../embeddable/public';
 import {
   DashboardContainer,
   IVariableInterpolationService,
+  VariableValue,
   createNoOpVariableInterpolationService,
 } from '../../../dashboard/public';
 import { ExploreInput, ExploreOutput } from './types';
@@ -41,7 +42,6 @@ import { ExploreEmbeddableComponent } from './explore_embeddable_component';
 import { ExploreServices } from '../types';
 import { ExpressionRendererEvent, ExpressionRenderError } from '../../../expressions/public';
 import { AxisColumnMappings, VisColumn } from '../components/visualizations/types';
-import { DataLinkVariable } from '../components/visualizations/table/data_link_utils';
 import { DOC_HIDE_TIME_COLUMN_SETTING, SAMPLE_SIZE_SETTING } from '../../common';
 import * as columnActions from '../application/legacy/discover/application/utils/state_management/common';
 import { buildColumns } from '../application/legacy/discover/application/utils/columns';
@@ -85,7 +85,7 @@ export interface SearchProps {
   chartType?: ChartType;
   activeTab?: string;
   styleOptions?: StyleOptions;
-  variables?: DataLinkVariable[];
+  variables?: VariableValue[];
   axisColumnMappings?: AxisColumnMappings;
   displayTimeColumn: boolean;
   title: string;
