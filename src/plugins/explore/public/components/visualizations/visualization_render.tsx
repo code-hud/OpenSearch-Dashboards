@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, EMPTY } from 'rxjs';
 import { useObservable } from 'react-use';
 import dateMath from '@elastic/datemath';
 
@@ -274,13 +274,11 @@ export const CommonVisualizationRender = ({
   return <VisualizationEmptyState />;
 };
 
-const NO_VARIABLES$ = new BehaviorSubject<VariableValue[]>([]);
-
 export const VisualizationRender = ({
   data$,
   config$,
   showRawTable$,
-  variables$ = NO_VARIABLES$,
+  variables$,
   timeRange: inputTimeRange,
   onSelectTimeRange,
   onStyleChange,
@@ -289,7 +287,8 @@ export const VisualizationRender = ({
   const visualizationData = useObservable(data$);
   const visConfig = useObservable(config$);
   const showRawTable = useObservable(showRawTable$);
-  const variables = useObservable(variables$);
+  // Outside a dashboard there are no variables to resolve.
+  const variables = useObservable(variables$ ?? EMPTY, []);
   return (
     <CommonVisualizationRender
       visConfig={visConfig}
