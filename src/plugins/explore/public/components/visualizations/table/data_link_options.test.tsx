@@ -63,7 +63,7 @@ describe('DataLinkModal', () => {
 
     expect(screen.getByText(/__data\.fields\.name/)).toBeInTheDocument();
     expect(screen.getByText(/\$variable/)).toBeInTheDocument();
-    expect(screen.getByText(/\$\{__value\.text:rison\}/)).toBeInTheDocument();
+    expect(screen.getByText(/:rison/)).toBeInTheDocument();
   });
 
   it('saves link with valid input', async () => {
