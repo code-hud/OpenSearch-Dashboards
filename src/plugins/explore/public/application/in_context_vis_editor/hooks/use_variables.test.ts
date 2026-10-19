@@ -13,6 +13,8 @@ jest.mock('../../../../../dashboard/public', () => ({
   VariableService: jest.fn(),
   VariableInterpolationService: jest.fn(),
   createNoOpVariableInterpolationService: jest.fn(),
+  hasLoadingVariables: (variables: Array<{ loading?: boolean }>) =>
+    variables.some((v) => v.loading),
 }));
 
 // Mock opensearch_dashboards_react

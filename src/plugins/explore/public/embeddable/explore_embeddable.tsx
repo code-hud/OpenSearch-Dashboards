@@ -26,6 +26,7 @@ import {
   IVariableInterpolationService,
   VariableValue,
   createNoOpVariableInterpolationService,
+  hasLoadingVariables,
 } from '../../../dashboard/public';
 import { ExploreInput, ExploreOutput } from './types';
 import {
@@ -310,8 +311,7 @@ export class ExploreEmbeddable
         this.variableSubscription = dashboardContainer.variableService
           .getVariables$()
           .subscribe((variables) => {
-            const hasLoading = variables.some((v) => 'loading' in v && v?.loading);
-            if (hasLoading) return;
+            if (hasLoadingVariables(variables)) return;
 
             const linkVariablesChanged = this.updateLinkVariables();
             const refetching = this.handleVariablesChange();

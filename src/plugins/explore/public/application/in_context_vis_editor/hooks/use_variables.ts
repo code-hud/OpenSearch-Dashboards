@@ -9,6 +9,7 @@ import {
   VariableService,
   VariableInterpolationService,
   createNoOpVariableInterpolationService,
+  hasLoadingVariables,
 } from '../../../../../dashboard/public';
 import { useOpenSearchDashboards } from '../../../../../opensearch_dashboards_react/public';
 import { ExploreServices } from '../../../types';
@@ -73,12 +74,15 @@ export const useVariables = (containerVariables?: Variable[]) => {
     return () => sub.unsubscribe();
   }, [variableService, services.data]);
 
-  // Re-execute query when interpolated result changes
+  // When values settle: give the table preview the values for its data links,
+  // and re-execute the query if its interpolated form changed
   useEffect(() => {
     if (!variableService || !interpolationService) return;
 
-    const sub = variableService.getVariables$().subscribe((variables: any[]) => {
-      if (variables.some((v: any) => 'loading' in v && v.loading)) return;
+    const sub = variableService.getVariables$().subscribe((variables) => {
+      if (hasLoadingVariables(variables)) return;
+
+      visualizationBuilderForEditor.setDataLinkVariables(interpolationService.getVariables());
 
       const queryState = queryBuilder.queryState$.getValue();
       const currentQuery = prepareQueryForLanguage(queryState).query;
@@ -91,19 +95,7 @@ export const useVariables = (containerVariables?: Variable[]) => {
     });
 
     return () => sub.unsubscribe();
-  }, [variableService, interpolationService, queryBuilder]);
-
-  // Give the table preview the current values, so data links resolve $var as on the dashboard
-  useEffect(() => {
-    if (!variableService || !interpolationService) return;
-
-    const sub = variableService.getVariables$().subscribe((variables: any[]) => {
-      if (variables.some((v: any) => 'loading' in v && v.loading)) return;
-      visualizationBuilderForEditor.setDataLinkVariables(interpolationService.getVariables());
-    });
-
-    return () => sub.unsubscribe();
-  }, [variableService, interpolationService, visualizationBuilderForEditor]);
+  }, [variableService, interpolationService, queryBuilder, visualizationBuilderForEditor]);
 
   // Sync variable values to URL
   useEffect(() => {
