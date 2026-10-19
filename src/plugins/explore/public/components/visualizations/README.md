@@ -111,7 +111,7 @@ Example, a link that opens another dashboard with two variables set from the row
 #/view/endpoint-dashboard?_a=(variables:!((id:service,current:!(${__data.fields.service:rison})),(id:endpoint,current:!(${__value.text:rison}))))
 ```
 
-On a dashboard, the Explore embeddable passes the current variable values to `TableVis` through `SearchProps.variables`, and re-renders the panel when they change.
+On a dashboard, the Explore embeddable passes the current variable values to `TableVis` through `SearchProps.variables`, and re-renders the panel when they change. In the in-context visualization editor, `useVariables` passes them through `VisualizationBuilder.setDataLinkVariables`, so the preview resolves the same links.
 
 ## Usage and Extension
 

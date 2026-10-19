@@ -13,6 +13,7 @@ import {
 import { useOpenSearchDashboards } from '../../../../../opensearch_dashboards_react/public';
 import { ExploreServices } from '../../../types';
 import { useQueryBuilderState } from './use_query_builder_state';
+import { useVisualizationBuilder } from './use_visualization_builder';
 import { prepareQueryForLanguage } from '../../utils/languages';
 import { VARIABLE_VALUES_URL_KEY } from '../types';
 
@@ -27,6 +28,7 @@ import { VARIABLE_VALUES_URL_KEY } from '../types';
 export const useVariables = (containerVariables?: Variable[]) => {
   const { services } = useOpenSearchDashboards<ExploreServices>();
   const { queryBuilder } = useQueryBuilderState();
+  const { visualizationBuilderForEditor } = useVisualizationBuilder();
 
   // Create service & interpolation
   const variableService = useMemo(() => {
@@ -90,6 +92,18 @@ export const useVariables = (containerVariables?: Variable[]) => {
 
     return () => sub.unsubscribe();
   }, [variableService, interpolationService, queryBuilder]);
+
+  // Give the table preview the current values, so data links resolve $var as on the dashboard
+  useEffect(() => {
+    if (!variableService || !interpolationService) return;
+
+    const sub = variableService.getVariables$().subscribe((variables: any[]) => {
+      if (variables.some((v: any) => 'loading' in v && v.loading)) return;
+      visualizationBuilderForEditor.setDataLinkVariables(interpolationService.getVariables());
+    });
+
+    return () => sub.unsubscribe();
+  }, [variableService, interpolationService, visualizationBuilderForEditor]);
 
   // Sync variable values to URL
   useEffect(() => {
