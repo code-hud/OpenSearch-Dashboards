@@ -132,6 +132,12 @@ describe('resolveDataLinkUrl', () => {
     );
   });
 
+  it('keeps a colon in a field name that is not a :rison suffix', () => {
+    const colonRow = { 'http:status': 200, 'a:rison': 'colon' };
+    expect(resolveDataLinkUrl('?s=${__data.fields.http:status}', 'x', colonRow)).toBe('?s=200');
+    expect(resolveDataLinkUrl('?s=${__data.fields["a:rison"]}', 'x', colonRow)).toBe('?s=colon');
+  });
+
   it('leaves an unknown suffix in place', () => {
     expect(resolveDataLinkUrl('?e=${env:raw}', 'x', {}, variables)).toBe('?e=${env:raw}');
     expect(resolveDataLinkUrl('?m=${__data.fields.missing:rison}', 'x', row)).toBe(

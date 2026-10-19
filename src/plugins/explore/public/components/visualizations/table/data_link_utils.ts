@@ -16,11 +16,29 @@ export interface DataLinkVariable {
   values?: string[];
 }
 
-// ${__value.text} | ${__data.fields.<name>} | ${__data.fields["<name>"]} |
-// ${__data.fields['<name>']} | ${<variable>} | $<variable>
-// Any of those may end with :rison. The suffix is not a capturing group.
-const PLACEHOLDER =
-  /\$\{__value\.text(?::rison)?\}|\$\{__data\.fields(?:\.([^}[\]"']+?)|\[\s*"([^"]*)"\s*\]|\[\s*'([^']*)'\s*\])(?::rison)?\}|\$\{(\w+)(?::rison)?\}|\$(\w+)(?::rison)?/g;
+/**
+ * Placeholder grammar, compatible with Grafana data links:
+ *
+ *   ${__value.text}                 the clicked cell value
+ *   ${__data.fields.<name>}         a field of the same row; <name> may contain dots
+ *   ${__data.fields["<name>"]}      the same, for names with spaces or other characters
+ *   ${__data.fields['<name>']}
+ *   ${<variable>}  or  $<variable>  a dashboard variable
+ *
+ * A `:rison` format suffix may follow the body of any placeholder, for example
+ * ${__value.text:rison} or $<variable>:rison. Field names containing `}` are
+ * not supported.
+ */
+
+/** Outer form: a braced body, or a bare variable with an optional format. */
+const PLACEHOLDER = /\$\{([^}]+)\}|\$(\w+)(:rison)?/g;
+
+/** Braced bodies. Each one captures the format suffix as its last group. */
+const CLICKED_VALUE = /^__value\.text(:rison)?$/;
+const ROW_FIELD = /^__data\.fields(?:\.(.+?)|\[\s*"([^"]*)"\s*\]|\[\s*'([^']*)'\s*\])(:rison)?$/;
+const VARIABLE = /^(\w+)(:rison)?$/;
+
+const RISON = ':rison';
 
 const textOf = (value: unknown): string =>
   value === null || value === undefined
@@ -33,12 +51,54 @@ const textOf = (value: unknown): string =>
 const encode = (value: unknown, asRison: boolean): string =>
   asRison ? rison.encode_uri(textOf(value)) : encodeURIComponent(textOf(value));
 
-const endsWithRison = (match: string) => match.endsWith(':rison}') || match.endsWith(':rison');
+/** Returns undefined for an unknown variable, so the placeholder is kept. */
+const resolveVariable = (
+  name: string,
+  asRison: boolean,
+  variables: DataLinkVariable[]
+): string | undefined => {
+  const variable = variables.find((v) => v.name === name);
+  if (!variable) {
+    return undefined;
+  }
+  if (variable.multi) {
+    const values = variable.values ?? [];
+    return asRison
+      ? rison.encode_uri(values)
+      : values.map((item) => encodeURIComponent(item)).join(',');
+  }
+  return encode(variable.value, asRison);
+};
+
+/** Returns undefined for an unknown body, field or variable, so the placeholder is kept. */
+const resolveBraced = (
+  body: string,
+  value: unknown,
+  row: Record<string, unknown>,
+  variables: DataLinkVariable[]
+): string | undefined => {
+  const clicked = CLICKED_VALUE.exec(body);
+  if (clicked) {
+    return encode(value, clicked[1] === RISON);
+  }
+  const field = ROW_FIELD.exec(body);
+  if (field) {
+    const name = field[1] ?? field[2] ?? field[3];
+    return Object.prototype.hasOwnProperty.call(row, name)
+      ? encode(row[name], field[4] === RISON)
+      : undefined;
+  }
+  const variable = VARIABLE.exec(body);
+  if (variable) {
+    return resolveVariable(variable[1], variable[2] === RISON, variables);
+  }
+  return undefined;
+};
 
 /**
  * Resolves the placeholders of a table data link URL in one pass, so a
- * substituted value is never expanded again. Placeholders for missing fields
- * or unknown variables stay as they are.
+ * substituted value is never expanded again. Placeholders for missing fields,
+ * unknown variables or unknown suffixes stay as they are.
  */
 export const resolveDataLinkUrl = (
   url: string,
@@ -48,34 +108,11 @@ export const resolveDataLinkUrl = (
 ): string =>
   url.replace(
     PLACEHOLDER,
-    (
-      match: string,
-      dotField?: string,
-      doubleQuotedField?: string,
-      singleQuotedField?: string,
-      bracedVariable?: string,
-      simpleVariable?: string
-    ) => {
-      const asRison = endsWithRison(match);
-      if (match.startsWith('${__value.text')) {
-        return encode(value, asRison);
-      }
-      const field = dotField ?? doubleQuotedField ?? singleQuotedField;
-      if (field !== undefined) {
-        return Object.prototype.hasOwnProperty.call(row, field)
-          ? encode(row[field], asRison)
-          : match;
-      }
-      const variable = variables.find((v) => v.name === (bracedVariable ?? simpleVariable));
-      if (!variable) {
-        return match;
-      }
-      if (variable.multi) {
-        const values = variable.values ?? [];
-        return asRison
-          ? rison.encode_uri(values)
-          : values.map((item) => encodeURIComponent(item)).join(',');
-      }
-      return encode(variable.value, asRison);
+    (match: string, braced?: string, bareVariable?: string, bareFormat?: string) => {
+      const resolved =
+        braced !== undefined
+          ? resolveBraced(braced, value, row, variables)
+          : resolveVariable(bareVariable as string, bareFormat === RISON, variables);
+      return resolved ?? match;
     }
   );
