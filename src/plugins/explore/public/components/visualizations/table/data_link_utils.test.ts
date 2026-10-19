@@ -3,7 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import rison from 'rison-node';
+import { parse as parseUrl } from 'url';
 import { resolveDataLinkUrl, DataLinkVariable } from './data_link_utils';
+
+/**
+ * Same two steps the dashboard uses to read _a: url.parse on the hash
+ * (querystring decode), then rison.decode. See parseUrlHash and decodeState.
+ */
+const readDashboardState = (href: string) => {
+  const absolute = href.startsWith('#') ? `http://localhost/app/dashboards${href}` : href;
+  const hash = parseUrl(absolute, true).hash ?? '';
+  const query = parseUrl(hash.slice(1), true).query;
+  return rison.decode(String(query._a));
+};
 
 describe('resolveDataLinkUrl', () => {
   const row = {
@@ -88,5 +101,82 @@ describe('resolveDataLinkUrl', () => {
     expect(resolveDataLinkUrl('https://example.com/a?b=c', 'x', row, variables)).toBe(
       'https://example.com/a?b=c'
     );
+  });
+
+  it('percent-encodes by default, including an explicit :uri suffix', () => {
+    expect(resolveDataLinkUrl('?v=${__value.text}', "o'brien /x")).toBe("?v=o'brien%20%2Fx");
+    expect(resolveDataLinkUrl('?v=${__value.text:uri}', '/api/orders')).toBe('?v=%2Fapi%2Forders');
+    expect(resolveDataLinkUrl('?e=${env:uri}', 'x', {}, variables)).toBe('?e=prod');
+  });
+
+  it('rison-encodes a :rison suffix without percent-encoding the value', () => {
+    expect(resolveDataLinkUrl('current:!(${__value.text:rison})', '/api/orders')).toBe(
+      'current:!(/api/orders)'
+    );
+    expect(resolveDataLinkUrl('${__value.text:rison}', 'foo bar')).toBe("'foo+bar'");
+    expect(resolveDataLinkUrl('${__value.text:rison}', "o'brien")).toBe("'o!'brien'");
+    expect(resolveDataLinkUrl('${__value.text:rison}', 'a!b')).toBe("'a!!b'");
+    expect(resolveDataLinkUrl('?p=${__data.fields["request path"]:rison}', 'x', row)).toBe(
+      '?p=/api/orders'
+    );
+    expect(resolveDataLinkUrl('?s=${__data.fields.resource.service.name:rison}', 'x', row)).toBe(
+      '?s=cart'
+    );
+    expect(resolveDataLinkUrl('?e=$env:rison', 'x', {}, variables)).toBe('?e=prod');
+  });
+
+  it('rison-encodes a multi-value variable as one array', () => {
+    expect(resolveDataLinkUrl('current:${regions:rison}', 'x', {}, variables)).toBe(
+      "current:!('eu+west',us)"
+    );
+  });
+
+  it('leaves an unknown suffix in place', () => {
+    expect(resolveDataLinkUrl('?e=${env:raw}', 'x', {}, variables)).toBe('?e=${env:raw}');
+    expect(resolveDataLinkUrl('?m=${__data.fields.missing:rison}', 'x', row)).toBe(
+      '?m=${__data.fields.missing:rison}'
+    );
+  });
+
+  it('does not expand a rison value that itself contains a placeholder', () => {
+    expect(resolveDataLinkUrl('?v=${__value.text:rison}&e=$env', '$env', {}, variables)).toBe(
+      "?v='$env'&e=prod"
+    );
+  });
+
+  it('round-trips a dashboard link through the URL parser and rison.decode', () => {
+    const href = resolveDataLinkUrl(
+      '#/view/endpoint-dashboard?_a=(variables:!((id:service,current:!(${service:rison})),(id:endpoint,current:!(${__value.text:rison}))))',
+      '/api/orders',
+      {},
+      [{ name: 'service', value: "o'brien" }]
+    );
+
+    expect(readDashboardState(href)).toEqual({
+      variables: [
+        { id: 'service', current: ["o'brien"] },
+        { id: 'endpoint', current: ['/api/orders'] },
+      ],
+    });
+  });
+
+  it('round-trips spaces, reserved characters, and a multi-value variable', () => {
+    const href = resolveDataLinkUrl(
+      '#/view/endpoint-dashboard?_a=(variables:!((id:service,current:!(${service:rison})),(id:path,current:!(${__data.fields["request path"]:rison})),(id:regions,current:${regions:rison})))',
+      'x',
+      { 'request path': 'a&b#c+d 100%' },
+      [
+        { name: 'service', value: 'foo bar' },
+        { name: 'regions', value: 'eu,us', multi: true, values: ['eu west', "o'brien"] },
+      ]
+    );
+
+    expect(readDashboardState(href)).toEqual({
+      variables: [
+        { id: 'service', current: ['foo bar'] },
+        { id: 'path', current: ['a&b#c+d 100%'] },
+        { id: 'regions', current: ['eu west', "o'brien"] },
+      ],
+    });
   });
 });
