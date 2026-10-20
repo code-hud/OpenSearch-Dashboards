@@ -8,6 +8,7 @@ import {
   SavedObject,
   SavedObjectOpenSearchDashboardsServices,
 } from '../../../saved_objects/public';
+import { extractDataLinkReferences, injectDataLinkReferences } from './data_link_references';
 
 export const SAVED_OBJECT_TYPE = 'explore';
 
@@ -50,6 +51,8 @@ export function createSavedExploreClass(services: SavedObjectOpenSearchDashboard
           uiState: 'text',
         },
         searchSource: true,
+        extractReferences: extractDataLinkReferences,
+        injectReferences: injectDataLinkReferences,
         defaults: {
           title: '',
           description: '',

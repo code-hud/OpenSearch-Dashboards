@@ -10,7 +10,7 @@ import { i18n } from '@osd/i18n';
 import { cellValueText, getTextColor } from './table_vis_utils';
 import { ColorMode } from '../types';
 import { DataLink } from './data_link_options';
-import { isNavigableDataLinkUrl, resolveDataLink } from './data_link_utils';
+import { getDashboardUrl, isNavigableDataLinkUrl, resolveDataLink } from './data_link_utils';
 import type { VariableValue } from '../../../../../dashboard/public';
 
 import './cell_value.scss';
@@ -66,7 +66,14 @@ export const CellValue = (props: Props) => {
 
   const resolvedLinks = (dataLinks ?? [])
     .filter((link) => columnId && link.fields.includes(columnId))
-    .map((link) => ({ link, ...resolveDataLink(link.url, value, row, variables) }));
+    // A dashboard link whose reference was not found has no dashboardId.
+    .filter((link) => !link.dashboardRefName || link.dashboardId)
+    .map((link) => {
+      const resolved = resolveDataLink(link.url, value, row, variables);
+      return link.dashboardId
+        ? { link, ...resolved, url: getDashboardUrl(link.dashboardId) + resolved.url }
+        : { link, ...resolved };
+    });
 
   if (resolvedLinks.length === 0) {
     return <span>{valueDisplay}</span>;

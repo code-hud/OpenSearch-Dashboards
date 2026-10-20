@@ -6,6 +6,7 @@
 import rison from 'rison-node';
 import { ALL_OPTION_VALUE, VariableValue } from '../../../../../dashboard/public';
 import { cellValueText } from './table_vis_utils';
+import { getServices } from '../../../application/legacy/discover/opensearch_dashboards_services';
 
 /**
  * Placeholder grammar, compatible with Grafana data links:
@@ -142,6 +143,12 @@ export const isNavigableDataLinkUrl = (url: string): boolean => {
     return false;
   }
 };
+
+/** URL of a dashboard, including the base path and current workspace. */
+export const getDashboardUrl = (dashboardId: string): string =>
+  getServices().core.application.getUrlForApp('dashboards', {
+    path: `#/view/${encodeURIComponent(dashboardId)}`,
+  });
 
 /** The resolved URL only; see resolveDataLink. */
 export const resolveDataLinkUrl = (

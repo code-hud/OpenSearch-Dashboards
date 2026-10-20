@@ -9,6 +9,13 @@ import '@testing-library/jest-dom';
 import { CellValue } from './cell_value';
 import { DataLink } from './data_link_options';
 
+const mockGetUrlForApp = jest.fn(
+  (appId: string, { path }: { path: string }) => `/w/ws/app/${appId}${path}`
+);
+jest.mock('../../../application/legacy/discover/opensearch_dashboards_services', () => ({
+  getServices: () => ({ core: { application: { getUrlForApp: mockGetUrlForApp } } }),
+}));
+
 jest.mock('@elastic/eui', () => ({
   ...jest.requireActual('@elastic/eui'),
   EuiPopover: ({
@@ -236,6 +243,41 @@ describe('CellValue', () => {
       'href',
       '/a/TestValue/b/TestValue'
     );
+  });
+
+  it('opens the referenced dashboard with the resolved URL state', () => {
+    const links: DataLink[] = [
+      {
+        id: '1',
+        title: 'Open',
+        url: '?_a=(variables:!((id:e,current:!(${__value.text:rison}))))',
+        openInNewTab: false,
+        fields: ['col1'],
+        dashboardId: 'my dash',
+      },
+    ];
+    render(<CellValue {...baseProps} dataLinks={links} />);
+    expect(mockGetUrlForApp).toHaveBeenCalledWith('dashboards', { path: '#/view/my%20dash' });
+    expect(screen.getByRole('link', { name: 'TestValue' })).toHaveAttribute(
+      'href',
+      '/w/ws/app/dashboards#/view/my%20dash?_a=(variables:!((id:e,current:!(TestValue))))'
+    );
+  });
+
+  it('hides a dashboard link whose reference was not found', () => {
+    const links: DataLink[] = [
+      {
+        id: '1',
+        title: 'Open',
+        url: '',
+        openInNewTab: false,
+        fields: ['col1'],
+        dashboardRefName: 'data_link_0',
+      },
+    ];
+    render(<CellValue {...baseProps} dataLinks={links} />);
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.getByText('TestValue')).toBeInTheDocument();
   });
 
   it('renders boolean value as text inside a single link', () => {

@@ -3,13 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { i18n } from '@osd/i18n';
 import {
   EuiBadge,
   EuiButton,
+  EuiButtonGroup,
   EuiButtonIcon,
+  EuiCompressedComboBox,
+  EuiCompressedFieldText,
   EuiContextMenu,
   EuiContextMenuPanelDescriptor,
   EuiFlexGroup,
@@ -30,14 +33,84 @@ import { StyleAccordion } from '../style_panel/style_accordion';
 import { TableVisStyleControlsProps } from './table_vis_options';
 import { VisColumn } from '../types';
 import { DebouncedFieldText } from '../style_panel/utils';
+import { getServices } from '../../../application/legacy/discover/opensearch_dashboards_services';
 
 export interface DataLink {
   id: string;
   title: string;
+  /**
+   * The link target. For a dashboard link, this is appended to the
+   * dashboard's URL instead, e.g. `?_a=(variables:...)`.
+   */
   url: string;
   openInNewTab: boolean;
   fields: string[];
+  /** Set when the link opens a dashboard. Saved as a saved-object reference. */
+  dashboardId?: string;
+  /** Saved form of `dashboardId`: the name of the reference holding the id. */
+  dashboardRefName?: string;
 }
+
+type TargetType = 'url' | 'dashboard';
+
+interface DashboardOption {
+  label: string;
+  value: string;
+}
+
+const targetOptions = [
+  {
+    id: 'url',
+    label: i18n.translate('explore.stylePanel.table.dataLinks.targetUrl', {
+      defaultMessage: 'URL',
+    }),
+  },
+  {
+    id: 'dashboard',
+    label: i18n.translate('explore.stylePanel.table.dataLinks.targetDashboard', {
+      defaultMessage: 'Dashboard',
+    }),
+  },
+];
+
+const DASHBOARD_SEARCH_PAGE_SIZE = 50;
+
+/** Saved dashboards matching the search text, newest search wins. */
+const useDashboardOptions = (enabled: boolean) => {
+  const [options, setOptions] = useState<DashboardOption[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchText, setSearchText] = useState('');
+
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    setIsLoading(true);
+    getServices()
+      .core.savedObjects.client.find<{ title: string }>({
+        type: 'dashboard',
+        search: searchText ? `${searchText}*` : undefined,
+        searchFields: ['title'],
+        perPage: DASHBOARD_SEARCH_PAGE_SIZE,
+      })
+      .then(({ savedObjects }) => {
+        if (cancelled) return;
+        setOptions(
+          savedObjects.map((obj) => ({ label: obj.attributes.title || obj.id, value: obj.id }))
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setOptions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, searchText]);
+
+  return { options, isLoading, search: setSearchText };
+};
 
 interface DataLinkModalProps {
   link?: DataLink;
@@ -54,6 +127,15 @@ export const DataLinkModal: React.FC<DataLinkModalProps> = ({
 }) => {
   const [title, setTitle] = useState(link?.title || '');
   const [url, setUrl] = useState(link?.url || '');
+  const [targetType, setTargetType] = useState<TargetType>(link?.dashboardId ? 'dashboard' : 'url');
+  const [dashboard, setDashboard] = useState<DashboardOption | undefined>(
+    link?.dashboardId ? { label: link.dashboardId, value: link.dashboardId } : undefined
+  );
+  const {
+    options: dashboardOptions,
+    isLoading: isLoadingDashboards,
+    search,
+  } = useDashboardOptions(targetType === 'dashboard');
   const [openInNewTab, setOpenInNewTab] = useState(link?.openInNewTab ?? true);
   const [selectedFields, setSelectedFields] = useState<Array<{ label: string; value: string }>>(
     link?.fields
@@ -65,7 +147,27 @@ export const DataLinkModal: React.FC<DataLinkModalProps> = ({
   );
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-  const isSaveDisabled = !title.trim() || !url.trim() || selectedFields.length === 0;
+  // Show the dashboard's title instead of its id when editing a link.
+  const dashboardId = dashboard?.value;
+  useEffect(() => {
+    if (!dashboardId || dashboard?.label !== dashboardId) return;
+    let cancelled = false;
+    getServices()
+      .core.savedObjects.client.get<{ title: string }>('dashboard', dashboardId)
+      .then((obj) => {
+        if (!cancelled && !obj.error && obj.attributes.title) {
+          setDashboard({ label: obj.attributes.title, value: dashboardId });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [dashboardId, dashboard?.label]);
+
+  const isDashboardLink = targetType === 'dashboard';
+  const isSaveDisabled =
+    !title.trim() || selectedFields.length === 0 || (isDashboardLink ? !dashboardId : !url.trim());
 
   const handleSave = () => {
     onSave({
@@ -74,6 +176,7 @@ export const DataLinkModal: React.FC<DataLinkModalProps> = ({
       url,
       openInNewTab,
       fields: selectedFields.map((option) => option.value),
+      ...(isDashboardLink && dashboardId ? { dashboardId } : {}),
     });
   };
 
@@ -173,9 +276,59 @@ export const DataLinkModal: React.FC<DataLinkModalProps> = ({
           </EuiFlexGroup>
         </EuiFormRow>
         <EuiFormRow
-          label={i18n.translate('explore.stylePanel.table.dataLinks.urlLabel', {
-            defaultMessage: 'URL',
+          label={i18n.translate('explore.stylePanel.table.dataLinks.targetLabel', {
+            defaultMessage: 'Link to',
           })}
+        >
+          <EuiButtonGroup
+            legend={i18n.translate('explore.stylePanel.table.dataLinks.targetLabel', {
+              defaultMessage: 'Link to',
+            })}
+            buttonSize="compressed"
+            options={targetOptions}
+            idSelected={targetType}
+            onChange={(id) => setTargetType(id as TargetType)}
+            data-test-subj="dataLinkTargetType"
+          />
+        </EuiFormRow>
+        {isDashboardLink && (
+          <EuiFormRow
+            label={i18n.translate('explore.stylePanel.table.dataLinks.dashboardLabel', {
+              defaultMessage: 'Dashboard',
+            })}
+          >
+            <EuiCompressedComboBox
+              singleSelection={{ asPlainText: true }}
+              async
+              isLoading={isLoadingDashboards}
+              options={dashboardOptions}
+              selectedOptions={dashboard ? [dashboard] : []}
+              onSearchChange={search}
+              onChange={(selected) =>
+                setDashboard(
+                  selected[0]?.value
+                    ? { label: selected[0].label, value: selected[0].value }
+                    : undefined
+                )
+              }
+              placeholder={i18n.translate(
+                'explore.stylePanel.table.dataLinks.dashboardPlaceholder',
+                { defaultMessage: 'Select a dashboard' }
+              )}
+              data-test-subj="dataLinkDashboardSelect"
+            />
+          </EuiFormRow>
+        )}
+        <EuiFormRow
+          label={
+            isDashboardLink
+              ? i18n.translate('explore.stylePanel.table.dataLinks.dashboardStateLabel', {
+                  defaultMessage: 'Dashboard URL state (optional)',
+                })
+              : i18n.translate('explore.stylePanel.table.dataLinks.urlLabel', {
+                  defaultMessage: 'URL',
+                })
+          }
           helpText={i18n.translate('explore.stylePanel.table.dataLinks.urlHelpText', {
             defaultMessage:
               'Placeholders: {cellValue} (clicked value), {rowField} (same-row field), {variable} (dashboard variable). Add {risonSuffix} for a value inside dashboard URL state.',
@@ -187,10 +340,15 @@ export const DataLinkModal: React.FC<DataLinkModalProps> = ({
             },
           })}
         >
-          <DebouncedFieldText
+          {/* Not debounced: for a dashboard link Save is enabled with an empty URL state. */}
+          <EuiCompressedFieldText
             value={url}
-            placeholder="Enter data link url"
-            onChange={(value: string) => setUrl(value)}
+            placeholder={
+              isDashboardLink
+                ? "?_a=(variables:!((id:endpoint,current:!('${__value.text}'))))"
+                : 'Enter data link url'
+            }
+            onChange={(e) => setUrl(e.target.value)}
             data-test-subj="dataLinkUrlInput"
           />
         </EuiFormRow>

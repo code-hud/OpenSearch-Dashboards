@@ -111,6 +111,18 @@ Example, a link that opens another dashboard with two variables set from the row
 #/view/endpoint-dashboard?_a=(variables:!((id:service,current:!(${__data.fields.service:rison})),(id:endpoint,current:!(${__value.text:rison}))))
 ```
 
+### Dashboard links
+
+A link can target a dashboard instead of a URL ("Link to: Dashboard" in the link editor). Its `dashboardId` is not stored in the URL: on save, `extractDataLinkReferences` (`saved_explore/data_link_references.ts`) replaces it with a `dashboardRefName` and adds a `dashboard` entry to the saved object's `references`, and `injectDataLinkReferences` restores it on load. Anything that rewrites saved-object ids, such as import with "Create new objects with unique IDs", duplicating into a workspace, or an integration install, therefore keeps the link pointing at its dashboard, and "Include related objects" on export includes the linked dashboards.
+
+The cell builds the dashboard's URL with `application.getUrlForApp('dashboards')`, so it includes the base path and the current workspace, and appends the link's `url`, which then holds only the dashboard URL state. Placeholders in it resolve as above:
+
+```
+?_a=(variables:!((id:endpoint,current:!(${__value.text:rison}))))
+```
+
+A dashboard link whose reference is missing is not rendered.
+
 On a dashboard, the Explore embeddable passes the current variable values to `TableVis` through `SearchProps.variables`, and re-renders the panel when they change. In the in-context visualization editor, `useVariables` passes them through `VisualizationBuilder.setDataLinkVariables`, so the preview resolves the same links.
 
 ## Usage and Extension

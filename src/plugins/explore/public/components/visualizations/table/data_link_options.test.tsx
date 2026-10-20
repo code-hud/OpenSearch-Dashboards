@@ -3,10 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { DataLinkOptions, DataLink, DataLinkModal } from './data_link_options';
 import { VisColumn, VisFieldType } from '../types';
+
+const mockFind = jest.fn().mockResolvedValue({
+  savedObjects: [{ id: 'endpoint-dashboard', attributes: { title: 'Endpoint' } }],
+});
+const mockGet = jest
+  .fn()
+  .mockResolvedValue({ id: 'endpoint-dashboard', attributes: { title: 'Endpoint' } });
+jest.mock('../../../application/legacy/discover/opensearch_dashboards_services', () => ({
+  getServices: () => ({
+    core: { savedObjects: { client: { find: mockFind, get: mockGet } } },
+  }),
+}));
 
 const numericalColumns: VisColumn[] = [
   {
@@ -117,6 +129,73 @@ describe('DataLinkModal', () => {
         })
       );
     });
+  });
+
+  it('saves a dashboard link with the selected dashboard id', async () => {
+    const handleSave = jest.fn();
+    render(
+      <DataLinkModal
+        onSave={handleSave}
+        onCancel={jest.fn()}
+        availableFields={[{ label: 'Num1', value: 'num1' }]}
+      />
+    );
+
+    fireEvent.change(screen.getByTestId('dataLinkTitleInput'), {
+      target: { value: 'Open endpoint' },
+    });
+    fireEvent.click(screen.getByTestId('dataLinkAddFieldButton'));
+    fireEvent.click(await screen.findByTestId('dataLinkFieldOption-num1'));
+    fireEvent.click(screen.getByText('Dashboard'));
+
+    const select = await screen.findByTestId('dataLinkDashboardSelect');
+    await waitFor(() =>
+      expect(mockFind).toHaveBeenCalledWith(expect.objectContaining({ type: 'dashboard' }))
+    );
+    expect(screen.getByTestId('dataLinkSaveButton')).toBeDisabled();
+
+    fireEvent.focus(within(select).getByTestId('comboBoxSearchInput'));
+    fireEvent.click(await screen.findByText('Endpoint'));
+    fireEvent.change(screen.getByTestId('dataLinkUrlInput'), {
+      target: { value: '?_a=(variables:!())' },
+    });
+
+    const saveBtn = screen.getByTestId('dataLinkSaveButton');
+    await waitFor(() => expect(saveBtn).not.toBeDisabled());
+    fireEvent.click(saveBtn);
+
+    await waitFor(() =>
+      expect(handleSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Open endpoint',
+          url: '?_a=(variables:!())',
+          dashboardId: 'endpoint-dashboard',
+        })
+      )
+    );
+  });
+
+  it('shows the title of the linked dashboard when editing', async () => {
+    render(
+      <DataLinkModal
+        link={{
+          id: '1',
+          title: 'Open endpoint',
+          url: '',
+          openInNewTab: false,
+          fields: ['num1'],
+          dashboardId: 'endpoint-dashboard',
+        }}
+        onSave={jest.fn()}
+        onCancel={jest.fn()}
+        availableFields={[{ label: 'Num1', value: 'num1' }]}
+      />
+    );
+
+    expect(mockGet).toHaveBeenCalledWith('dashboard', 'endpoint-dashboard');
+    const select = screen.getByTestId('dataLinkDashboardSelect');
+    await waitFor(() => expect(within(select).getByText('Endpoint')).toBeInTheDocument());
+    expect(screen.getByTestId('dataLinkSaveButton')).not.toBeDisabled();
   });
 });
 
