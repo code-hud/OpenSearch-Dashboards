@@ -1,0 +1,2 @@
+fix:
+- [Explore] Use short labels for time units in visualizations ([#9](https://github.com/code-hud/OpenSearch-Dashboards/pull/9))
