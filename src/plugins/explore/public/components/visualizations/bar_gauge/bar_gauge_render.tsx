@@ -118,7 +118,7 @@ export const BarGaugeRender = ({
       maxBase: invalid ? 100 : max,
       isInvalid: invalid,
       baseColor: styles.thresholdOptions.baseColor ?? getColors().statusGreen,
-      selectedUnit: getUnitById(styles.unitId),
+      selectedUnit: getUnitById(styles.unitId, styles.shortUnitLabels),
       rawThresholds: styles.thresholdOptions.thresholds ?? [],
     };
   }, [data, styles]);

@@ -47,9 +47,15 @@ export interface HistogramChartStyleOptions extends StandardOptions {
 }
 
 export type HistogramChartStyle = Required<
-  Omit<HistogramChartStyleOptions, 'unitId' | 'unitSuffix' | 'decimals' | 'min' | 'max'>
+  Omit<
+    HistogramChartStyleOptions,
+    'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals' | 'min' | 'max'
+  >
 > &
-  Pick<HistogramChartStyleOptions, 'unitId' | 'unitSuffix' | 'decimals' | 'min' | 'max'>;
+  Pick<
+    HistogramChartStyleOptions,
+    'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals' | 'min' | 'max'
+  >;
 
 export const defaultHistogramChartStyles: HistogramChartStyle = {
   tooltipOptions: {

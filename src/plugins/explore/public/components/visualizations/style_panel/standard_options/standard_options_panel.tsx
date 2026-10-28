@@ -18,6 +18,8 @@ export interface StandardOptionsPanelProps {
   onMaxChange?: (max: number | undefined) => void;
   unit?: string;
   onUnitChange: (unit: string | undefined) => void;
+  shortUnitLabels?: boolean;
+  onShortUnitLabelsChange?: (shortUnitLabels: boolean) => void;
   decimals?: number;
   onDecimalsChange?: (decimals: number | undefined) => void;
   unitSuffix?: string;
@@ -32,6 +34,8 @@ export const StandardOptionsPanel = ({
   onMinChange,
   unit,
   onUnitChange,
+  shortUnitLabels,
+  onShortUnitLabelsChange,
   decimals,
   onDecimalsChange,
   unitSuffix,
@@ -60,7 +64,12 @@ export const StandardOptionsPanel = ({
         )}
 
         <EuiFlexItem>
-          <UnitPanel unit={unit} onUnitChange={onUnitChange} />
+          <UnitPanel
+            unit={unit}
+            onUnitChange={onUnitChange}
+            shortLabels={shortUnitLabels}
+            onShortLabelsChange={onShortUnitLabelsChange}
+          />
         </EuiFlexItem>
 
         {onUnitSuffixChange && (
