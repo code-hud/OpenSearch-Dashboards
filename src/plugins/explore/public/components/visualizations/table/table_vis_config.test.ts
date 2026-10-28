@@ -56,6 +56,7 @@ describe('table_vis_config', () => {
         showFooter: false,
         footerCalculations: [],
         cellTypes: [],
+        columnUnits: [],
         thresholds: [],
         baseColor: '#000000',
         dataLinks: [],
