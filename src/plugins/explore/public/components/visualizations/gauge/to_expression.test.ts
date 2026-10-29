@@ -68,7 +68,7 @@ describe('createGauge', () => {
 
     expect(gauge.text).toMatchObject({
       value: '30',
-      unit: 'milliseconds',
+      unit: 'ms',
       unitFirst: false,
     });
   });
