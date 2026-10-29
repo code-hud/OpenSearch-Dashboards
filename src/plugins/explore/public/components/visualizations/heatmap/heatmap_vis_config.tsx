@@ -70,10 +70,13 @@ export interface HeatmapChartStyleOptions extends StandardOptions {
 export type HeatmapChartStyle = Required<
   Omit<
     HeatmapChartStyleOptions,
-    'legendTitle' | 'unitId' | 'unitSuffix' | 'decimals' | 'min' | 'max'
+    'legendTitle' | 'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals' | 'min' | 'max'
   >
 > &
-  Pick<HeatmapChartStyleOptions, 'legendTitle' | 'unitId' | 'unitSuffix' | 'decimals'>;
+  Pick<
+    HeatmapChartStyleOptions,
+    'legendTitle' | 'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals'
+  >;
 
 export const defaultHeatmapChartStyles: HeatmapChartStyle = {
   // Basic controls

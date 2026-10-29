@@ -15,6 +15,9 @@ import {
   metricLengthUnits,
   imperialLengthUnits,
   timeUnits,
+  formatUnitValue,
+  hasShortUnitLabels,
+  showDisplayValue,
 } from './collection';
 
 // Mock Date.now for consistent testing
@@ -254,6 +257,80 @@ describe('getUnitById', () => {
   it('should handle undefined id', () => {
     const unit = getUnitById(undefined);
     expect(unit).toBeUndefined();
+  });
+
+  it('should return full-word time units by default', () => {
+    expect(getUnitById('millisecond')?.symbol).toBe('milliseconds');
+    expect(getUnitById('millisecond', false)?.symbol).toBe('milliseconds');
+  });
+
+  it('should return short time units when short labels are requested', () => {
+    const expected: Record<string, string> = {
+      millisecond: 'ms',
+      second: 'sec',
+      minute: 'min',
+      hour: 'hr',
+      day: 'day',
+      week: 'wk',
+      month: 'mo',
+      year: 'yr',
+    };
+    Object.entries(expected).forEach(([id, symbol]) => {
+      const unit = getUnitById(id, true);
+      expect(unit?.symbol).toBe(symbol);
+      expect(unit?.name).toBe(getUnitById(id)?.name);
+    });
+  });
+
+  it('should ignore short labels for units without a short variant', () => {
+    expect(getUnitById('bytes', true)).toBe(getUnitById('bytes'));
+    expect(getUnitById('dateTimeFromNow', true)).toBe(getUnitById('dateTimeFromNow'));
+  });
+});
+
+describe('hasShortUnitLabels', () => {
+  it('should be true only for time units', () => {
+    expect(hasShortUnitLabels('millisecond')).toBe(true);
+    expect(hasShortUnitLabels('year')).toBe(true);
+    expect(hasShortUnitLabels('bytes')).toBe(false);
+    expect(hasShortUnitLabels('dateTimeFromNow')).toBe(false);
+    expect(hasShortUnitLabels(undefined)).toBe(false);
+  });
+});
+
+describe('formatUnitValue with short labels', () => {
+  it('should scale and abbreviate time values', () => {
+    expect(formatUnitValue(17.83, 'millisecond', undefined, undefined, true)).toBe('17.83 ms');
+    expect(formatUnitValue(1200, 'millisecond', undefined, undefined, true)).toBe('1.2 sec');
+    expect(formatUnitValue(210, 'second', undefined, undefined, true)).toBe('3.5 min');
+    expect(formatUnitValue(78, 'minute', undefined, undefined, true)).toBe('1.3 hr');
+    expect(formatUnitValue(3, 'day', undefined, undefined, true)).toBe('3 day');
+    expect(formatUnitValue(14, 'day', undefined, undefined, true)).toBe('2 wk');
+    expect(formatUnitValue(60, 'day', undefined, undefined, true)).toBe('2 mo');
+    expect(formatUnitValue(730, 'day', undefined, undefined, true)).toBe('2 yr');
+  });
+
+  it('should scale down to short labels', () => {
+    expect(formatUnitValue(0.5, 'second', undefined, undefined, true)).toBe('500 ms');
+  });
+
+  it('should keep full words when short labels are off', () => {
+    expect(formatUnitValue(17.83, 'millisecond')).toBe('17.83 milliseconds');
+    expect(formatUnitValue(1200, 'millisecond', undefined, undefined, false)).toBe('1.2 seconds');
+  });
+
+  it('should combine short labels with decimals and suffix', () => {
+    expect(formatUnitValue(1234, 'millisecond', 1, '/req', true)).toBe('1.2 sec/req');
+  });
+
+  it('should leave non-time units unchanged', () => {
+    expect(formatUnitValue(2000, 'bytes', undefined, undefined, true)).toBe('2 KB');
+  });
+});
+
+describe('showDisplayValue with short time units', () => {
+  it('should render the short label', () => {
+    expect(showDisplayValue(true, getUnitById('millisecond', true), 2500)).toBe('2.5 sec');
   });
 });
 

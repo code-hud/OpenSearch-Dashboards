@@ -208,6 +208,8 @@ export const MetricVisStyleControls: React.FC<MetricVisStyleControlsProps> = ({
               onMaxChange={(value) => updateStyleOption('max', value)}
               unit={styleOptions.unitId}
               onUnitChange={(value) => updateStyleOption('unitId', value)}
+              shortUnitLabels={styleOptions.shortUnitLabels}
+              onShortUnitLabelsChange={(value) => updateStyleOption('shortUnitLabels', value)}
               decimals={styleOptions.decimals}
               onDecimalsChange={(value) => updateStyleOption('decimals', value)}
               unitSuffix={styleOptions.unitSuffix}

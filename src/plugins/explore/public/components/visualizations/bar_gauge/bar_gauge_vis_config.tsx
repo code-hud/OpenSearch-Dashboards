@@ -32,9 +32,15 @@ export interface BarGaugeChartStyleOptions extends StandardOptions {
 }
 
 export type BarGaugeChartStyle = Required<
-  Omit<BarGaugeChartStyleOptions, 'min' | 'max' | 'unitId' | 'unitSuffix' | 'decimals'>
+  Omit<
+    BarGaugeChartStyleOptions,
+    'min' | 'max' | 'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals'
+  >
 > &
-  Pick<BarGaugeChartStyleOptions, 'min' | 'max' | 'unitId' | 'unitSuffix' | 'decimals'>;
+  Pick<
+    BarGaugeChartStyleOptions,
+    'min' | 'max' | 'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals'
+  >;
 
 export const defaultBarGaugeChartStyles: BarGaugeChartStyle = {
   tooltipOptions: {

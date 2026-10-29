@@ -96,4 +96,30 @@ describe('MetricChartRender', () => {
     expect(screen.getByText('jpg Total requests')).toBeInTheDocument();
     expect(screen.queryByText('COUNT()')).not.toBeInTheDocument();
   });
+
+  it('shows the full-word time unit by default', () => {
+    render(
+      <MetricChartRender
+        styles={{ ...defaultMetricChartStyles, unitId: 'millisecond' }}
+        axisColumnMappings={axisColumnMappings}
+        spec={{ data: [{ count: 17.83 }], name: 'COUNT()' }}
+      />
+    );
+
+    expect(screen.getByText('17.83')).toBeInTheDocument();
+    expect(screen.getByText('milliseconds')).toBeInTheDocument();
+  });
+
+  it('shows the short time unit when short unit labels are enabled', () => {
+    render(
+      <MetricChartRender
+        styles={{ ...defaultMetricChartStyles, unitId: 'millisecond', shortUnitLabels: true }}
+        axisColumnMappings={axisColumnMappings}
+        spec={{ data: [{ count: 1200 }], name: 'COUNT()' }}
+      />
+    );
+
+    expect(screen.getByText('1.2')).toBeInTheDocument();
+    expect(screen.getByText('sec')).toBeInTheDocument();
+  });
 });
