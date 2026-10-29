@@ -143,6 +143,31 @@ describe('CellValue', () => {
     expect(link).toHaveAttribute('target', '_blank');
   });
 
+  it('formats numeric values with the column unit', () => {
+    render(<CellValue {...baseProps} value={1500} unitId="bytes" />);
+    expect(screen.getByText('1.5 KB')).toBeInTheDocument();
+  });
+
+  it('renders non-numeric values unchanged when a unit is set', () => {
+    render(<CellValue {...baseProps} value="n/a" unitId="bytes" />);
+    expect(screen.getByText('n/a')).toBeInTheDocument();
+  });
+
+  it('shows the formatted value in a link but keeps the raw value in the URL', () => {
+    const links: DataLink[] = [
+      {
+        id: '1',
+        title: 'Link',
+        url: 'https://example.com?q=${__value.text}',
+        openInNewTab: false,
+        fields: ['col1'],
+      },
+    ];
+    render(<CellValue {...baseProps} value={1500} unitId="bytes" dataLinks={links} />);
+    const link = screen.getByRole('link', { name: '1.5 KB' });
+    expect(link).toHaveAttribute('href', 'https://example.com?q=1500');
+  });
+
   it('renders boolean value as text inside a single link', () => {
     const links: DataLink[] = [
       {

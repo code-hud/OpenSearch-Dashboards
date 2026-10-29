@@ -12,6 +12,7 @@ import { TableFooterOptions } from './table_vis_footer_options';
 import { CellAlignment, Threshold } from '../types';
 import { ThresholdCustomValues } from '../style_panel/threshold/threshold_custom_values';
 import { TableCellTypeOptions } from './table_cell_type_options';
+import { TableColumnUnitOptions } from './table_column_unit_options';
 import {
   defaultTableChartStyles,
   TableChartStyle,
@@ -161,6 +162,13 @@ export const TableVisStyleControls: React.FC<TableVisStyleControlsProps> = ({
             onBaseColorChange={onBaseColorChange}
           />
         </StyleAccordion>
+      </EuiFlexItem>
+      <EuiFlexItem grow={false}>
+        <TableColumnUnitOptions
+          styleOptions={styleOptions}
+          onStyleChange={onStyleChange}
+          numericalColumns={numericalColumns}
+        />
       </EuiFlexItem>
       <EuiFlexItem grow={false}>
         <TableFooterOptions

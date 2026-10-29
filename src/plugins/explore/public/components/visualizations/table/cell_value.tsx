@@ -6,7 +6,7 @@
 import React from 'react';
 import { EuiContextMenu, EuiDataGridCellValueElementProps, EuiPopover } from '@elastic/eui';
 import { useEffect } from 'react';
-import { getTextColor } from './table_vis_utils';
+import { formatValueWithUnit, getTextColor } from './table_vis_utils';
 import { ColorMode } from '../types';
 import { DataLink } from './data_link_options';
 
@@ -21,6 +21,7 @@ type Props = Pick<EuiDataGridCellValueElementProps, 'setCellProps'> & {
   isPopoverOpen?: boolean;
   setPopoverOpen?: (open: boolean) => void;
   columnId?: string;
+  unitId?: string;
 };
 
 export const CellValue = (props: Props) => {
@@ -34,10 +35,14 @@ export const CellValue = (props: Props) => {
     isPopoverOpen,
     setPopoverOpen,
     columnId,
+    unitId,
   } = props;
 
+  const formattedValue = formatValueWithUnit(value, unitId);
   const valueDisplay =
-    value !== null && typeof value === 'object' ? JSON.stringify(value) : `${value ?? ''}`;
+    formattedValue !== null && typeof formattedValue === 'object'
+      ? JSON.stringify(formattedValue)
+      : `${formattedValue ?? ''}`;
 
   useEffect(() => {
     const cellStyle: React.CSSProperties = { textAlign };

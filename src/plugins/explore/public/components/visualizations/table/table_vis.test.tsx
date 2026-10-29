@@ -155,14 +155,22 @@ jest.mock('./cell_value', () => {
   return {
     __esModule: true,
     ...mock,
-    CellValue: ({ value, columnId, textAlign, dataLinks, isPopoverOpen, setCellProps }: any) => {
+    CellValue: ({
+      value,
+      columnId,
+      textAlign,
+      dataLinks,
+      isPopoverOpen,
+      setCellProps,
+      unitId,
+    }: any) => {
       setCellProps({ style: { textAlign } });
 
       const applicableLinks =
         dataLinks?.filter((link: any) => columnId && link.fields.includes(columnId)) || [];
 
       return (
-        <div data-test-subj={`cellValueWrapper-${columnId}-${value}`}>
+        <div data-test-subj={`cellValueWrapper-${columnId}-${value}`} data-unit-id={unitId}>
           <button
             data-test-subj={`cellValueButton-${columnId}-${value}`}
             onClick={() => mock.setPopoverOpenCellMock({ rowIndex: 0, columnId })}
@@ -399,6 +407,73 @@ describe('TableVis', () => {
     render(<TableVis rows={mockRows} columns={mockColumns} styleOptions={styleOptions} />);
     const footerCell = screen.getByTestId('footerCell-column1');
     expect(footerCell.textContent).toBe('Mean: 15');
+  });
+
+  test('passes no unit to cells when columnUnits is not set', () => {
+    const savedStyleWithoutUnits: Partial<typeof defaultTableChartStyles> = {
+      ...defaultTableChartStyles,
+    };
+    delete savedStyleWithoutUnits.columnUnits;
+    render(
+      <TableVis
+        rows={mockRows}
+        columns={mockColumns}
+        styleOptions={savedStyleWithoutUnits as typeof defaultTableChartStyles}
+      />
+    );
+    expect(screen.getByTestId('cellValueWrapper-column1-10')).not.toHaveAttribute('data-unit-id');
+  });
+
+  test('passes the column unit only to cells of that column', () => {
+    render(
+      <TableVis
+        rows={mockRows}
+        columns={mockColumns}
+        styleOptions={{
+          ...defaultTableChartStyles,
+          columnUnits: [{ field: 'column1', unitId: 'bytes' }],
+        }}
+      />
+    );
+    expect(screen.getByTestId('cellValueWrapper-column1-10')).toHaveAttribute(
+      'data-unit-id',
+      'bytes'
+    );
+    expect(screen.getByTestId('cellValueWrapper-column2-value1-2')).not.toHaveAttribute(
+      'data-unit-id'
+    );
+  });
+
+  test('formats footer calculations with the column unit', () => {
+    render(
+      <TableVis
+        rows={[{ column1: 1000 }, { column1: 2000 }]}
+        columns={mockColumns}
+        styleOptions={{
+          ...defaultTableChartStyles,
+          showFooter: true,
+          footerCalculations: [{ fields: ['column1'], calculation: 'mean' }],
+          columnUnits: [{ field: 'column1', unitId: 'bytes' }],
+        }}
+      />
+    );
+    expect(screen.getByTestId('footerCell-column1').textContent).toBe('Mean: 1.5 KB');
+  });
+
+  test('does not apply the column unit to count footer calculations', () => {
+    render(
+      <TableVis
+        rows={mockRows}
+        columns={mockColumns}
+        styleOptions={{
+          ...defaultTableChartStyles,
+          showFooter: true,
+          footerCalculations: [{ fields: ['column1'], calculation: 'count' }],
+          columnUnits: [{ field: 'column1', unitId: 'bytes' }],
+        }}
+      />
+    );
+    expect(screen.getByTestId('footerCell-column1').textContent).toBe('Count: 2');
   });
 
   test('handles empty footer calculations', () => {
