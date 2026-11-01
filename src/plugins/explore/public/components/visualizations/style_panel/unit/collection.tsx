@@ -30,14 +30,26 @@ export const binaryDataUnits = [
 ];
 
 export const timeUnits = [
+  { symbol: 'ms', value: 1 },
+  { symbol: 'sec', value: 1000 }, // 1 second = 1000 milliseconds
+  { symbol: 'min', value: 60 * 1000 }, // 1 minute = 60 seconds
+  { symbol: 'hr', value: 60 * 60 * 1000 }, // 1 hour = 60 minutes
+  { symbol: 'day', value: 24 * 60 * 60 * 1000 }, // 1 day = 24 hours
+  { symbol: 'wk', value: 7 * 24 * 60 * 60 * 1000 }, // 1 week = 7 days
+  { symbol: 'mo', value: 30 * 24 * 60 * 60 * 1000 }, // 1 month = 30 days
+  { symbol: 'yr', value: 365 * 24 * 60 * 60 * 1000 }, // 1 year = 365 days
+];
+
+// Spelled out because they read as prose, e.g. "3 days ago"
+const fromNowTimeUnits = [
   { symbol: 'milliseconds', value: 1 },
-  { symbol: 'seconds', value: 1000 }, // 1 second = 1000 milliseconds
-  { symbol: 'minutes', value: 60 * 1000 }, // 1 minute = 60 seconds
-  { symbol: 'hours', value: 60 * 60 * 1000 }, // 1 hour = 60 minutes
-  { symbol: 'days', value: 24 * 60 * 60 * 1000 }, // 1 day = 24 hours
-  { symbol: 'weeks', value: 7 * 24 * 60 * 60 * 1000 }, // 1 week = 7 days
-  { symbol: 'months', value: 30 * 24 * 60 * 60 * 1000 }, // 1 month = 30 days
-  { symbol: 'years', value: 365 * 24 * 60 * 60 * 1000 }, // 1 year = 365 days
+  { symbol: 'seconds', value: 1000 },
+  { symbol: 'minutes', value: 60 * 1000 },
+  { symbol: 'hours', value: 60 * 60 * 1000 },
+  { symbol: 'days', value: 24 * 60 * 60 * 1000 },
+  { symbol: 'weeks', value: 7 * 24 * 60 * 60 * 1000 },
+  { symbol: 'months', value: 30 * 24 * 60 * 60 * 1000 },
+  { symbol: 'years', value: 365 * 24 * 60 * 60 * 1000 },
 ];
 
 export const massUnits = [
@@ -131,8 +143,8 @@ export const computingDate = (num: number, symbol?: string): UnitDisplay => {
       const diff = utcMillis - num;
       const absDiff = Math.abs(diff);
       const suffix = diff > 0 ? 'ago' : 'after';
-      for (let i = timeUnits.length - 1; i >= 0; i--) {
-        const unit = timeUnits[i];
+      for (let i = fromNowTimeUnits.length - 1; i >= 0; i--) {
+        const unit = fromNowTimeUnits[i];
         const value = Math.floor(absDiff / unit.value);
         if (value >= 1) {
           return { label: `${value} ${unit.symbol} ${suffix}` };
@@ -445,43 +457,43 @@ export const UnitsCollection: Record<string, Unit> = {
       {
         id: 'year',
         name: i18n.translate('explore.stylePanel.unit.year', { defaultMessage: 'Year' }),
-        symbol: 'years',
+        symbol: 'yr',
         display: (val, sy, decimals) => computing(val, timeUnits, sy, decimals),
       },
       {
         id: 'month',
         name: i18n.translate('explore.stylePanel.unit.month', { defaultMessage: 'Month' }),
-        symbol: 'months',
+        symbol: 'mo',
         display: (val, sy, decimals) => computing(val, timeUnits, sy, decimals),
       },
       {
         id: 'week',
         name: i18n.translate('explore.stylePanel.unit.week', { defaultMessage: 'Week' }),
-        symbol: 'weeks',
+        symbol: 'wk',
         display: (val, sy, decimals) => computing(val, timeUnits, sy, decimals),
       },
       {
         id: 'day',
         name: i18n.translate('explore.stylePanel.unit.day', { defaultMessage: 'Day' }),
-        symbol: 'days',
+        symbol: 'day',
         display: (val, sy, decimals) => computing(val, timeUnits, sy, decimals),
       },
       {
         id: 'hour',
         name: i18n.translate('explore.stylePanel.unit.hour', { defaultMessage: 'Hour' }),
-        symbol: 'hours',
+        symbol: 'hr',
         display: (val, sy, decimals) => computing(val, timeUnits, sy, decimals),
       },
       {
         id: 'minute',
         name: i18n.translate('explore.stylePanel.unit.minute', { defaultMessage: 'Minute' }),
-        symbol: 'minutes',
+        symbol: 'min',
         display: (val, sy, decimals) => computing(val, timeUnits, sy, decimals),
       },
       {
         id: 'second',
         name: i18n.translate('explore.stylePanel.unit.second', { defaultMessage: 'Second' }),
-        symbol: 'seconds',
+        symbol: 'sec',
         display: (val, sy, decimals) => computing(val, timeUnits, sy, decimals),
       },
       {
@@ -489,7 +501,7 @@ export const UnitsCollection: Record<string, Unit> = {
         name: i18n.translate('explore.stylePanel.unit.millisecond', {
           defaultMessage: 'Millisecond',
         }),
-        symbol: 'milliseconds',
+        symbol: 'ms',
         display: (val, sy, decimals) => computing(val, timeUnits, sy, decimals),
       },
     ],

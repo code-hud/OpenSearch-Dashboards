@@ -201,27 +201,37 @@ describe('UnitsCollection', () => {
 
   it('should add proper unit for time values using display function', () => {
     const year = getUnitById('year');
-    expect(year?.display?.(1000, 'years').label).toBe('1000 years');
+    expect(year?.display?.(1000, 'yr').label).toBe('1000 yr');
 
     const month = getUnitById('month');
-    expect(month?.display?.(1000, 'months').label).toBe('82.19 years');
+    expect(month?.display?.(1000, 'mo').label).toBe('82.19 yr');
 
     const week = getUnitById('week');
-    expect(week?.display?.(1000, 'weeks').label).toBe('19.18 years');
+    expect(week?.display?.(1000, 'wk').label).toBe('19.18 yr');
 
     const day = getUnitById('day');
-    expect(day?.display?.(1000, 'days').label).toBe('2.74 years');
+    expect(day?.display?.(1000, 'day').label).toBe('2.74 yr');
 
     const hour = getUnitById('hour');
-    expect(hour?.display?.(1000, 'hours').label).toBe('1.39 months');
+    expect(hour?.display?.(1000, 'hr').label).toBe('1.39 mo');
 
     const minute = getUnitById('minute');
-    expect(minute?.display?.(1000, 'minutes').label).toBe('16.67 hours');
+    expect(minute?.display?.(1000, 'min').label).toBe('16.67 hr');
 
     const second = getUnitById('second');
-    expect(second?.display?.(1000, 'seconds').label).toBe('16.67 minutes');
+    expect(second?.display?.(1000, 'sec').label).toBe('16.67 min');
     const millisecond = getUnitById('millisecond');
-    expect(millisecond?.display?.(1000, 'milliseconds').label).toBe('1 seconds');
+    expect(millisecond?.display?.(1000, 'ms').label).toBe('1 sec');
+  });
+
+  it('should label durations with short time units that follow the value', () => {
+    const millisecond = getUnitById('millisecond');
+    const format = (val: number) => millisecond?.display?.(val, millisecond.symbol, 1).label;
+
+    expect(format(17.83)).toBe('17.8 ms');
+    expect(format(1200)).toBe('1.2 sec');
+    expect(format(210000)).toBe('3.5 min');
+    expect(format(4680000)).toBe('1.3 hr');
   });
 
   it('should keep length values in the same measurement system', () => {
@@ -404,8 +414,8 @@ describe('computing', () => {
   });
 
   it('should compute downward when the value is smaller than the current unit', () => {
-    const result = computing(0.5, timeUnits, 'hours');
-    expect(result.label).toBe('30 minutes');
+    const result = computing(0.5, timeUnits, 'hr');
+    expect(result.label).toBe('30 min');
   });
 });
 
