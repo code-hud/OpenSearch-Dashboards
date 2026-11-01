@@ -471,7 +471,13 @@ export type TooltipFormatFn = (params: TooltipFormatParams) => (echartsParams: a
 export const valueUnitFormatter = <T extends BaseChartStyle>(styles: T, hasUnit: boolean) => {
   return (value: unknown) =>
     hasUnit && typeof value === 'number'
-      ? formatUnitValue(value, styles.unitId, styles.decimals, styles.unitSuffix)
+      ? formatUnitValue(
+          value,
+          styles.unitId,
+          styles.decimals,
+          styles.unitSuffix,
+          styles.shortUnitLabels
+        )
       : String(value ?? '');
 };
 

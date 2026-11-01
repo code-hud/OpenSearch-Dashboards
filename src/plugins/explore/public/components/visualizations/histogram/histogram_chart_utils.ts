@@ -27,7 +27,7 @@ interface Options {
 export const formatHistogramBucketValue = (
   value: unknown,
   bucketPrecision: number,
-  unit?: { unitId?: string; decimals?: number; unitSuffix?: string }
+  unit?: { unitId?: string; decimals?: number; unitSuffix?: string; shortUnitLabels?: boolean }
 ): string => {
   const numericValue = Number(value);
 
@@ -37,7 +37,13 @@ export const formatHistogramBucketValue = (
 
   const rounded = roundToPrecision(numericValue, bucketPrecision);
   if (unit && (unit.unitId || unit.decimals != null || unit.unitSuffix)) {
-    return formatUnitValue(rounded, unit.unitId, unit.decimals, unit.unitSuffix);
+    return formatUnitValue(
+      rounded,
+      unit.unitId,
+      unit.decimals,
+      unit.unitSuffix,
+      unit.shortUnitLabels
+    );
   }
   return rounded.toString();
 };

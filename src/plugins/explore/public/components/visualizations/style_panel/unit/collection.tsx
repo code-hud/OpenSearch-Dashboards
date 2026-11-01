@@ -40,6 +40,17 @@ export const timeUnits = [
   { symbol: 'years', value: 365 * 24 * 60 * 60 * 1000 }, // 1 year = 365 days
 ];
 
+export const shortTimeUnits = [
+  { symbol: 'ms', value: 1 },
+  { symbol: 'sec', value: 1000 },
+  { symbol: 'min', value: 60 * 1000 },
+  { symbol: 'hr', value: 60 * 60 * 1000 },
+  { symbol: 'day', value: 24 * 60 * 60 * 1000 },
+  { symbol: 'wk', value: 7 * 24 * 60 * 60 * 1000 },
+  { symbol: 'mo', value: 30 * 24 * 60 * 60 * 1000 },
+  { symbol: 'yr', value: 365 * 24 * 60 * 60 * 1000 },
+];
+
 export const massUnits = [
   { symbol: 'mg', value: 0.001 }, // 1 milligram = 0.001 grams
   { symbol: 'g', value: 1 }, // 1 gram = 1 gram
@@ -612,8 +623,26 @@ Object.values(UnitsCollection).forEach((category) => {
   });
 });
 
+// short-label variants, used when a chart opts in to short unit labels
+export const ShortUnitsLookup: Record<string, UnitItem> = {};
+
+UnitsCollection.time.units.forEach((unit) => {
+  const index = timeUnits.findIndex((u) => u.symbol === unit.symbol);
+  if (!unit.id || index < 0) return;
+  ShortUnitsLookup[unit.id] = {
+    ...unit,
+    symbol: shortTimeUnits[index].symbol,
+    display: (val, sy, decimals) => computing(val, shortTimeUnits, sy, decimals),
+  };
+});
+
+export const hasShortUnitLabels = (id?: string) => !!id && id in ShortUnitsLookup;
+
 // get unit by ID
-export const getUnitById = (id?: string) => (id ? UnitsLookup[id] : undefined);
+export const getUnitById = (id?: string, shortLabels?: boolean) => {
+  if (!id) return undefined;
+  return (shortLabels && ShortUnitsLookup[id]) || UnitsLookup[id];
+};
 
 /**
  * Appends a user-defined unit suffix
@@ -649,10 +678,11 @@ export const formatUnitValue = (
   value: number,
   unitId?: string,
   decimals?: number,
-  suffix?: string
+  suffix?: string,
+  shortLabels?: boolean
 ): string => {
   if (!Number.isFinite(value)) return String(value);
-  const unit = getUnitById(unitId);
+  const unit = getUnitById(unitId, shortLabels);
   const base = unit?.display
     ? String(unit.display(value, unit.symbol, decimals).label)
     : `${formatDecimal(value, decimals)}${unit?.symbol ? ` ${unit.symbol}` : ''}`;

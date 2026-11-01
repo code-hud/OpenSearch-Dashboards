@@ -35,9 +35,12 @@ export interface SankeyChartStyleOptions extends StandardOptions {
 }
 
 export type SankeyChartStyle = Required<
-  Omit<SankeyChartStyleOptions, 'unitId' | 'unitSuffix' | 'decimals' | 'min' | 'max'>
+  Omit<
+    SankeyChartStyleOptions,
+    'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals' | 'min' | 'max'
+  >
 > &
-  Pick<SankeyChartStyleOptions, 'unitId' | 'unitSuffix' | 'decimals'>;
+  Pick<SankeyChartStyleOptions, 'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals'>;
 
 export const defaultSankeyChartStyles: SankeyChartStyle = {
   tooltipOptions: {

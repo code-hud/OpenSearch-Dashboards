@@ -1,0 +1,2 @@
+feat:
+- [Explore] Add an opt-in Short labels option that abbreviates time units on charts and metric tiles ([#8](https://github.com/code-hud/OpenSearch-Dashboards/pull/8))

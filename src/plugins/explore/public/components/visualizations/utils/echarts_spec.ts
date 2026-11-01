@@ -280,7 +280,13 @@ export const buildAxisConfigs = <T extends BaseChartStyle>(
           axisLabel: {
             ...axisStyling.axisLabel,
             formatter: (value: number) =>
-              formatUnitValue(value, styles.unitId, styles.decimals, styles.unitSuffix),
+              formatUnitValue(
+                value,
+                styles.unitId,
+                styles.decimals,
+                styles.unitSuffix,
+                styles.shortUnitLabels
+              ),
           },
         }),
       ...(axisType === 'category' &&

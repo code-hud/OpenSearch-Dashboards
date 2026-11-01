@@ -36,6 +36,7 @@ const generateLineStyles = (styles: LineChartStyle, valueField?: string) => {
       decimals: styles.decimals,
       unitId: styles.unitId,
       unitSuffix: styles.unitSuffix,
+      shortUnitLabels: styles.shortUnitLabels,
     }),
     lineStyle: {
       width: lineWidth,
@@ -199,6 +200,7 @@ export const createLineBarSeries =
             decimals: styles.decimals,
             unitId: styles.unitId,
             unitSuffix: styles.unitSuffix,
+            shortUnitLabels: styles.shortUnitLabels,
             // force the value label to be positioned inside the bar
             isStack: true,
             chartType: 'bar',

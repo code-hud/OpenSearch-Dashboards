@@ -70,6 +70,8 @@ export interface TooltipOptions {
 export interface StandardOptions {
   unitId?: string;
   unitSuffix?: string;
+  // abbreviates time unit labels (ms, sec, min) instead of full words
+  shortUnitLabels?: boolean;
   decimals?: number;
   min?: number;
   max?: number;

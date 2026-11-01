@@ -104,7 +104,13 @@ const createSankeySeries =
         }),
         ...(exclusive.showLinkLabels && {
           formatter: ({ value }: { value?: unknown }) =>
-            formatUnitValue(Number(value), styles.unitId, styles.decimals, styles.unitSuffix),
+            formatUnitValue(
+              Number(value),
+              styles.unitId,
+              styles.decimals,
+              styles.unitSuffix,
+              styles.shortUnitLabels
+            ),
         }),
       },
       lineStyle: {

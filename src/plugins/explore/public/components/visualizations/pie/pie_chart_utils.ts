@@ -61,7 +61,13 @@ export const createPieSeries =
       const label = state.seriesDisplayNames?.[params.name] ?? params.name;
       const rawValue = params.data?.value ?? params.value;
       const value = hasUnit
-        ? formatUnitValue(rawValue, styles.unitId, styles.decimals, styles.unitSuffix)
+        ? formatUnitValue(
+            rawValue,
+            styles.unitId,
+            styles.decimals,
+            styles.unitSuffix,
+            styles.shortUnitLabels
+          )
         : String(rawValue);
 
       if (styles?.exclusive?.showValues && styles?.exclusive?.showLabels) {

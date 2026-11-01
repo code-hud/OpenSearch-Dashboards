@@ -42,6 +42,8 @@ export const SankeyVisStyleControls: React.FC<SankeyVisStyleControlsProps> = ({
         <StandardOptionsPanel
           unit={styleOptions.unitId}
           onUnitChange={(unitId) => updateStyleOption('unitId', unitId)}
+          shortUnitLabels={styleOptions.shortUnitLabels}
+          onShortUnitLabelsChange={(value) => updateStyleOption('shortUnitLabels', value)}
           decimals={styleOptions.decimals}
           onDecimalsChange={(decimals) => updateStyleOption('decimals', decimals)}
           unitSuffix={styleOptions.unitSuffix}

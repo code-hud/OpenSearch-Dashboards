@@ -12,16 +12,24 @@ import {
   EuiFormRow,
   EuiButtonIcon,
   EuiContextMenuPanelDescriptor,
+  EuiSwitch,
 } from '@elastic/eui';
-import { UnitsCollection, getUnitById } from './collection';
+import { UnitsCollection, getUnitById, hasShortUnitLabels } from './collection';
 import './style.scss';
 
 export interface UnitPanelProps {
   unit?: string;
   onUnitChange: (unit: string | undefined) => void;
+  shortLabels?: boolean;
+  onShortLabelsChange?: (shortLabels: boolean) => void;
 }
 
-export const UnitPanel = ({ unit, onUnitChange }: UnitPanelProps) => {
+export const UnitPanel = ({
+  unit,
+  onUnitChange,
+  shortLabels,
+  onShortLabelsChange,
+}: UnitPanelProps) => {
   const [isPopoverOpen, setPopover] = useState(false);
   const [lastPanelId, setLastPanelId] = useState(0);
 
@@ -105,29 +113,44 @@ export const UnitPanel = ({ unit, onUnitChange }: UnitPanelProps) => {
   }, [handleChangeUnit]);
 
   return (
-    <EuiFormRow
-      fullWidth={true}
-      label={i18n.translate('explore.stylePanel.unit.panel', {
-        defaultMessage: 'Units',
-      })}
-    >
-      <EuiPopover
-        display="block"
-        button={inputBoxButton}
-        isOpen={isPopoverOpen}
-        closePopover={() => setPopover(false)}
-        panelPaddingSize="none"
-        anchorPosition="downLeft"
-        hasArrow={false}
+    <>
+      <EuiFormRow
+        fullWidth={true}
+        label={i18n.translate('explore.stylePanel.unit.panel', {
+          defaultMessage: 'Units',
+        })}
       >
-        <EuiContextMenu
-          data-test-subj="unitPanelContextMenu"
-          size="s"
-          initialPanelId={lastPanelId}
-          panels={panels}
-          className="visPanelUnitPopover"
-        />
-      </EuiPopover>
-    </EuiFormRow>
+        <EuiPopover
+          display="block"
+          button={inputBoxButton}
+          isOpen={isPopoverOpen}
+          closePopover={() => setPopover(false)}
+          panelPaddingSize="none"
+          anchorPosition="downLeft"
+          hasArrow={false}
+        >
+          <EuiContextMenu
+            data-test-subj="unitPanelContextMenu"
+            size="s"
+            initialPanelId={lastPanelId}
+            panels={panels}
+            className="visPanelUnitPopover"
+          />
+        </EuiPopover>
+      </EuiFormRow>
+      {onShortLabelsChange && hasShortUnitLabels(unit) && (
+        <EuiFormRow fullWidth={true}>
+          <EuiSwitch
+            compressed
+            label={i18n.translate('explore.stylePanel.unit.shortLabels', {
+              defaultMessage: 'Short labels',
+            })}
+            checked={!!shortLabels}
+            onChange={(e) => onShortLabelsChange(e.target.checked)}
+            data-test-subj="unitShortLabelsSwitch"
+          />
+        </EuiFormRow>
+      )}
+    </>
   );
 };

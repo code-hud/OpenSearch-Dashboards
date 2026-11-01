@@ -148,7 +148,7 @@ export const buildGaugeRenderData = ({
   const validValues = numericalValues.filter((value) => !isNaN(value));
   const maxNumber = validValues.length > 0 ? Math.max(...validValues) : 0;
   const minNumber = validValues.length > 0 ? Math.min(...validValues) : 0;
-  const selectedUnit = getUnitById(styles.unitId);
+  const selectedUnit = getUnitById(styles.unitId, styles.shortUnitLabels);
 
   const { minBase, maxBase } = getMaxAndMinBase(
     minNumber,

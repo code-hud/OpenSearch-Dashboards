@@ -34,9 +34,15 @@ export interface PieChartStyleOptions extends StandardOptions {
 }
 
 export type PieChartStyle = Required<
-  Omit<PieChartStyleOptions, 'legendTitle' | 'unitId' | 'unitSuffix' | 'decimals' | 'min' | 'max'>
+  Omit<
+    PieChartStyleOptions,
+    'legendTitle' | 'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals' | 'min' | 'max'
+  >
 > &
-  Pick<PieChartStyleOptions, 'legendTitle' | 'unitId' | 'unitSuffix' | 'decimals'>;
+  Pick<
+    PieChartStyleOptions,
+    'legendTitle' | 'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals'
+  >;
 
 export const defaultPieChartStyles: PieChartStyle = {
   // Basic controls

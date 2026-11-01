@@ -50,12 +50,12 @@ export interface ScatterChartStyleOptions extends StandardOptions {
 export type ScatterChartStyle = Required<
   Omit<
     ScatterChartStyleOptions,
-    'legendTitle' | 'unitId' | 'unitSuffix' | 'decimals' | 'min' | 'max'
+    'legendTitle' | 'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals' | 'min' | 'max'
   >
 > &
   Pick<
     ScatterChartStyleOptions,
-    'legendTitle' | 'unitId' | 'unitSuffix' | 'decimals' | 'min' | 'max'
+    'legendTitle' | 'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals' | 'min' | 'max'
   >;
 
 export const defaultScatterChartStyles: ScatterChartStyle = {

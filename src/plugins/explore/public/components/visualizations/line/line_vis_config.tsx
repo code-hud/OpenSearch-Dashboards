@@ -81,6 +81,7 @@ export type LineChartStyle = Required<
     | 'pointSize'
     | 'unitId'
     | 'unitSuffix'
+    | 'shortUnitLabels'
     | 'decimals'
     | 'min'
     | 'max'
@@ -88,7 +89,14 @@ export type LineChartStyle = Required<
 > &
   Pick<
     LineChartStyleOptions,
-    'legendTitle' | 'pointSize' | 'unitId' | 'unitSuffix' | 'decimals' | 'min' | 'max'
+    | 'legendTitle'
+    | 'pointSize'
+    | 'unitId'
+    | 'unitSuffix'
+    | 'shortUnitLabels'
+    | 'decimals'
+    | 'min'
+    | 'max'
   >;
 
 export const defaultLineChartStyles: LineChartStyle = {

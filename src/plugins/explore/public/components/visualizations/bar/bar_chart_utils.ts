@@ -169,6 +169,7 @@ export const createBarSeries =
           decimals: styles.decimals,
           unitId: styles.unitId,
           unitSuffix: styles.unitSuffix,
+          shortUnitLabels: styles.shortUnitLabels,
           isPercentage: resolveStackMode(styles) === 'percentage',
           isStack: resolveStackMode(styles) !== 'none',
           chartType: 'bar',

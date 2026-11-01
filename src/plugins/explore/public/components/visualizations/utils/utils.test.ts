@@ -3,9 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { applyAxisStyling, getAxisConfig, getSchemaByAxis, mergeStyles } from './utils';
+import {
+  applyAxisStyling,
+  getAxisConfig,
+  getSchemaByAxis,
+  mergeStyles,
+  valueUnitFormatter,
+} from './utils';
 import { AxisRole, Positions, VisFieldType, StandardAxes } from '../types';
 import { ChartStyles, StyleOptions } from './use_visualization_types';
+import { BaseChartStyle } from './echarts_spec';
 
 describe('applyAxisStyling', () => {
   const defaultAxis = {
@@ -354,5 +361,22 @@ describe('mergeStyles', () => {
       subtitle: 'Subtitle',
       description: 'Description',
     });
+  });
+});
+
+describe('valueUnitFormatter', () => {
+  it('formats time values with full words by default', () => {
+    const styles = { unitId: 'minute' } as BaseChartStyle;
+    expect(valueUnitFormatter(styles, true)(90)).toBe('1.5 hours');
+  });
+
+  it('formats time values with short labels when enabled', () => {
+    const styles = { unitId: 'minute', shortUnitLabels: true } as BaseChartStyle;
+    expect(valueUnitFormatter(styles, true)(90)).toBe('1.5 hr');
+  });
+
+  it('returns the raw value when no unit applies', () => {
+    const styles = { shortUnitLabels: true } as BaseChartStyle;
+    expect(valueUnitFormatter(styles, false)(90)).toBe('90');
   });
 });

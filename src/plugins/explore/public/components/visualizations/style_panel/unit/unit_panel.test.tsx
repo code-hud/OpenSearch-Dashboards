@@ -61,6 +61,45 @@ describe('UnitPanel', () => {
     expect(mockOnUnitChange).toHaveBeenCalledWith(undefined);
   });
 
+  it('shows the short labels switch for time units', () => {
+    const onShortLabelsChange = jest.fn();
+    render(
+      <UnitPanel
+        unit="millisecond"
+        onUnitChange={mockOnUnitChange}
+        onShortLabelsChange={onShortLabelsChange}
+      />
+    );
+    const toggle = screen.getByTestId('unitShortLabelsSwitch');
+    expect(toggle).toHaveAttribute('aria-checked', 'false');
+    fireEvent.click(toggle);
+    expect(onShortLabelsChange).toHaveBeenCalledWith(true);
+  });
+
+  it('reflects the enabled short labels state', () => {
+    render(
+      <UnitPanel
+        unit="second"
+        onUnitChange={mockOnUnitChange}
+        shortLabels={true}
+        onShortLabelsChange={jest.fn()}
+      />
+    );
+    expect(screen.getByTestId('unitShortLabelsSwitch')).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('hides the short labels switch for units without short labels', () => {
+    render(
+      <UnitPanel unit="bytes" onUnitChange={mockOnUnitChange} onShortLabelsChange={jest.fn()} />
+    );
+    expect(screen.queryByTestId('unitShortLabelsSwitch')).not.toBeInTheDocument();
+  });
+
+  it('hides the short labels switch when no change handler is given', () => {
+    render(<UnitPanel unit="millisecond" onUnitChange={mockOnUnitChange} />);
+    expect(screen.queryByTestId('unitShortLabelsSwitch')).not.toBeInTheDocument();
+  });
+
   it('displays unit categories in context menu', () => {
     render(<UnitPanel onUnitChange={mockOnUnitChange} />);
     fireEvent.click(screen.getByPlaceholderText('Select a unit'));

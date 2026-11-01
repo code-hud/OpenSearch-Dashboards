@@ -32,10 +32,20 @@ export interface GaugeChartStyleOptions extends StandardOptions {
 export type GaugeChartStyle = Required<
   Omit<
     GaugeChartStyleOptions,
-    'min' | 'max' | 'unitId' | 'unitSuffix' | 'decimals' | 'baseColor' | 'thresholds'
+    | 'min'
+    | 'max'
+    | 'unitId'
+    | 'unitSuffix'
+    | 'shortUnitLabels'
+    | 'decimals'
+    | 'baseColor'
+    | 'thresholds'
   >
 > &
-  Pick<GaugeChartStyleOptions, 'min' | 'max' | 'unitId' | 'unitSuffix' | 'decimals'>;
+  Pick<
+    GaugeChartStyleOptions,
+    'min' | 'max' | 'unitId' | 'unitSuffix' | 'shortUnitLabels' | 'decimals'
+  >;
 
 export const defaultGaugeChartStyles: GaugeChartStyle = {
   showTitle: true,

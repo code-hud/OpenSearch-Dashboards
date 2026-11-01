@@ -142,7 +142,7 @@ function calculateMetricTextData(
   const isValidNumber =
     calculatedValue !== undefined && typeof calculatedValue === 'number' && !isNaN(calculatedValue);
 
-  const selectedUnit = getUnitById(styles?.unitId);
+  const selectedUnit = getUnitById(styles?.unitId, styles?.shortUnitLabels);
 
   // Determine threshold-based color
   const thresholds = styles.thresholdOptions?.thresholds ?? [];

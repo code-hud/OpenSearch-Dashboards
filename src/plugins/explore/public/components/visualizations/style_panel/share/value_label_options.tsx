@@ -40,6 +40,7 @@ interface BuildValueLabelProps {
   decimals?: number;
   unitId?: string;
   unitSuffix?: string;
+  shortUnitLabels?: boolean;
   isPercentage?: boolean;
   isStack?: boolean;
   chartType?: 'non_bar' | 'bar';
@@ -53,6 +54,7 @@ export const buildValueLabel = ({
   decimals,
   unitId,
   unitSuffix,
+  shortUnitLabels,
   isStack = false,
   isPercentage = false,
   chartType = 'non_bar',
@@ -69,7 +71,7 @@ export const buildValueLabel = ({
           Array.isArray(params.value) && valueIndex >= 0 ? params.value[valueIndex] : params.value;
         // stack:Percentage won't consider unit display
         if (isPercentage) return formatSeriesValueLabel(value, true, decimals);
-        return formatUnitValue(value, unitId, decimals, unitSuffix);
+        return formatUnitValue(value, unitId, decimals, unitSuffix, shortUnitLabels);
       },
     },
     labelLayout: isStack ? { hideOverlap: true } : {},

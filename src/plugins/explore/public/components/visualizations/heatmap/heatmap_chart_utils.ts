@@ -165,7 +165,13 @@ export const createHeatmapSeries =
           formatter: (params: any) => {
             const v = Array.isArray(params.value) ? params.value[seriesIndex] : params.value;
             return typeof v === 'number'
-              ? formatUnitValue(v, styles.unitId, styles.decimals, styles.unitSuffix)
+              ? formatUnitValue(
+                  v,
+                  styles.unitId,
+                  styles.decimals,
+                  styles.unitSuffix,
+                  styles.shortUnitLabels
+                )
               : v;
           },
         },
@@ -196,7 +202,13 @@ export const createHeatmapSeries =
             const rawSeriesValue = params.value[seriesIndex];
             const seriesValue =
               typeof rawSeriesValue === 'number'
-                ? formatUnitValue(rawSeriesValue, styles.unitId, styles.decimals, styles.unitSuffix)
+                ? formatUnitValue(
+                    rawSeriesValue,
+                    styles.unitId,
+                    styles.decimals,
+                    styles.unitSuffix,
+                    styles.shortUnitLabels
+                  )
                 : (rawSeriesValue ?? '');
 
             const message = `<strong>${categoryDisplayName}</strong>: ${
