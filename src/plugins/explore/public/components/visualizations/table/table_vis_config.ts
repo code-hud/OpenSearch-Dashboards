@@ -15,6 +15,11 @@ export interface CellTypeConfig {
   type: ColorMode;
 }
 
+export interface ColumnUnitConfig {
+  field: string;
+  unitId?: string;
+}
+
 export interface Calc {
   fields: string[];
   calculation: CalculationMethod;
@@ -27,6 +32,7 @@ export interface TableChartStyleOptions {
   showFooter?: boolean;
   footerCalculations?: Calc[];
   cellTypes?: CellTypeConfig[];
+  columnUnits?: ColumnUnitConfig[];
   thresholds?: Threshold[];
   baseColor?: string;
   dataLinks?: DataLink[];
@@ -43,6 +49,7 @@ export const defaultTableChartStyles: TableChartStyle = {
   showFooter: false,
   footerCalculations: [],
   cellTypes: [],
+  columnUnits: [],
   thresholds: [],
   baseColor: '#000000',
   dataLinks: [],

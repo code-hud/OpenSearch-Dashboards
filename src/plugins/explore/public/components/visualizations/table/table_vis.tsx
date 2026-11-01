@@ -8,12 +8,15 @@ import { EuiDataGrid, EuiDataGridCellValueElementProps, EuiDataGridColumn } from
 import { VisColumn, VisFieldType } from '../types';
 import { defaultTableChartStyles, CellTypeConfig, TableChartStyle } from './table_vis_config';
 import { FilterConfig, TableColumnHeader } from './table_vis_filter';
-import { calculateValue } from '../utils/calculation';
+import { calculateValue, CalculationMethod } from '../utils/calculation';
 import { CellValue } from './cell_value';
 import { getThresholdByValue } from '../utils/utils';
-import { matchesFilter } from './table_vis_utils';
+import { formatValueWithUnit, getColumnUnitId, matchesFilter } from './table_vis_utils';
 
 import './table_vis.scss';
+
+// Counts are plain numbers, so the column unit does not apply to them.
+const COUNT_CALCULATIONS: CalculationMethod[] = ['count', 'distinct_count'];
 
 interface TableVisProps {
   rows: Array<Record<string, any>>;
@@ -254,6 +257,7 @@ export const TableVis = React.memo(
             }
             setPopoverOpen={(open) => setPopoverOpenCell(open ? { rowIndex, columnId } : null)}
             columnId={columnId}
+            unitId={getColumnUnitId(styleOptions?.columnUnits, columnId)}
           />
         );
       },
@@ -263,6 +267,7 @@ export const TableVis = React.memo(
         styleOptions?.thresholds,
         styleOptions?.baseColor,
         styleOptions?.cellTypes,
+        styleOptions?.columnUnits,
         styleOptions?.globalAlignment,
         styleOptions?.dataLinks,
         popoverOpenCell,
@@ -294,7 +299,10 @@ export const TableVis = React.memo(
                 const label =
                   calcForColumn.calculation.charAt(0).toUpperCase() +
                   calcForColumn.calculation.slice(1);
-                footerValue = `${label}: ${result}`;
+                const unitId = COUNT_CALCULATIONS.includes(calcForColumn.calculation)
+                  ? undefined
+                  : getColumnUnitId(styleOptions.columnUnits, columnId);
+                footerValue = `${label}: ${formatValueWithUnit(result, unitId)}`;
               }
             }
           }
@@ -308,6 +316,7 @@ export const TableVis = React.memo(
         styleOptions?.globalAlignment,
         styleOptions?.showFooter,
         styleOptions?.footerCalculations,
+        styleOptions?.columnUnits,
       ]
     );
 

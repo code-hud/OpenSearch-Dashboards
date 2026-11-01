@@ -5,6 +5,24 @@
 
 import { FilterOperator } from '../types';
 import { FilterConfig } from './table_vis_filter';
+import { ColumnUnitConfig } from './table_vis_config';
+import { formatUnitValue, getUnitById } from '../style_panel/unit/collection';
+
+export const getColumnUnitId = (
+  columnUnits: ColumnUnitConfig[] | undefined,
+  columnId: string
+): string | undefined => {
+  const unitId = columnUnits?.find((cu) => cu.field === columnId)?.unitId;
+  return getUnitById(unitId) ? unitId : undefined;
+};
+
+/**
+ * Formats a cell value with the column's unit. Non-numeric values are returned unchanged.
+ */
+export const formatValueWithUnit = (value: unknown, unitId?: string): unknown => {
+  if (!unitId || typeof value !== 'number' || !Number.isFinite(value)) return value;
+  return formatUnitValue(value, unitId);
+};
 
 // Function to calculate luminance of a hex color
 export const getLuminance = (hexColor: string): number => {
